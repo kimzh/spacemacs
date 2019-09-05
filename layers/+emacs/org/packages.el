@@ -17,6 +17,7 @@
         evil-org
         evil-surround
         gnuplot
+        (helm-org :toggle (configuration-layer/layer-used-p 'helm))
         (helm-org-rifle :toggle (configuration-layer/layer-used-p 'helm))
         htmlize
         ;; ob, org and org-agenda are installed by `org-plus-contrib'
@@ -83,6 +84,11 @@
     :defer t
     :init (spacemacs/set-leader-keys "aor" 'helm-org-rifle)))
 
+(defun org/init-helm-org ()
+  (use-package helm-org
+    :commands (helm-org-in-buffer-headings)
+    :defer t))
+
 (defun org/init-htmlize ()
   (use-package htmlize
     :defer t))
@@ -127,8 +133,7 @@
 
       (with-eval-after-load 'org-indent
         (spacemacs|hide-lighter org-indent-mode))
-      (let ((dir (configuration-layer/get-layer-local-dir 'org)))
-        (setq org-export-async-init-file (concat dir "org-async-init.el")))
+
       (defmacro spacemacs|org-emphasize (fname char)
         "Make function for setting the emphasis in org mode"
         `(defun ,fname () (interactive)
@@ -566,10 +571,13 @@ Headline^^            Visit entry^^               Filter^^                    Da
       (spacemacs/declare-prefix-for-mode 'org-mode "mBa" "add")
       (spacemacs/declare-prefix-for-mode 'org-mode "mBg" "goto")
       (spacemacs/set-leader-keys-for-major-mode 'org-mode
-        "Bac" 'org-brain-add-child
         "Bv" 'org-brain-visualize
+        "Bac" 'org-brain-add-child
+        "Bah" 'org-brain-add-child-headline
         "Bap" 'org-brain-add-parent
+        "Bar" 'org-brain-add-resource
         "Baf" 'org-brain-add-friendship
+        "Bgg" 'org-brain-goto
         "Bgc" 'org-brain-goto-child
         "Bgp" 'org-brain-goto-parent
         "Bgf" 'org-brain-goto-friend

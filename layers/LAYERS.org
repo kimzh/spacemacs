@@ -75,6 +75,7 @@
     - [[#extra-languages][Extra languages]]
     - [[#faust][Faust]]
     - [[#gpu][Gpu]]
+    - [[#kivy][Kivy]]
     - [[#octave][Octave]]
     - [[#prolog][Prolog]]
     - [[#sql][Sql]]
@@ -168,6 +169,8 @@
   - [[#epub][Epub]]
   - [[#pdf][Pdf]]
   - [[#speed-reading][Speed reading]]
+- [[#readmeorg-files-that-need-proper-tags][README.org files that need proper tags]]
+  - [[#zig][Zig]]
 - [[#source-control][Source control]]
   - [[#git][Git]]
   - [[#github][Github]]
@@ -392,7 +395,7 @@ Features:
 ** Mu4e
 [[file:+email/mu4e/README.org][+email/mu4e/README.org]]
 
-This layer adds support for the Mu4e email client.
+This layer adds support for the =Mu4e= email client.
 
 Features:
 - Search, read, reply, move, and delete email.
@@ -400,7 +403,7 @@ Features:
 - UI optimized for speed: quick keystrokes for common actions.
 - Very extendable and customizable.
 - Integration with Helm.
-- Maildir summary using [[https://github.com/agpchil/mu4e-maildirs-extension][mu4e-mailidrs-extension]]
+- Maildir summary using [[https://github.com/agpchil/mu4e-maildirs-extension][mu4e-mailidirs-extension]]
 - Notifications using [[https://github.com/iqbalansari/mu4e-alert][mu4e-alert]]
 
 ** Notmuch
@@ -563,7 +566,7 @@ This layer adds support for Emoji emoticons from [[https://www.webpagefx.com/too
 Features:
 - Browse Emoji in a dedicated buffer
 - Display Emoji images in buffer
-- Insert one or several Emoji with an helm front-end
+- Insert one or several Emoji with a helm front-end
 - Completion of Emojis using [[https://github.com/dunn/company-emoji][company-emoji]]
 
 ** Games
@@ -1035,7 +1038,6 @@ Features:
   - Android Logcat (not associated with any file types by default)
   - Gentoo ebuilds
   - Hoon
-  - Kivy
   - MATLAB
   - QML
   - OpenScad
@@ -1079,6 +1081,14 @@ Features:
   - =.tese= (Shaders)
   - =.frag= (Shaders)
   - =.comp= (Shaders)
+
+*** Kivy
+[[file:+lang/kivy/README.org][+lang/kivy/README.org]]
+
+This layer adds support for Kivy, cross-platform GUI framework for Python.
+
+Features:
+- Syntax Highlighting
 
 *** Octave
 [[file:+lang/octave/README.org][+lang/octave/README.org]]
@@ -1633,6 +1643,9 @@ Features:
 This layer adds support for [[http://elixir-lang.org/][Elixir]].
 
 [[https://github.com/tonini/alchemist.el][Alchemist]] brings the Elixir tooling to Emacs and comes with a bunch of features.
+[[https://github.com/emacs-lsp/lsp-mode][Lsp-mode]] brings IDE like features following Language Server Protocol, through [[https://github.com/JakeBecker/elixir-ls][elixir-ls]]
+
+As Alchemist is no longer maintained, elixir-ls is a preferred solution, even though it has less features at the moment.
 
 Features:
 - Powerful IEx integration
@@ -1935,6 +1948,7 @@ This layer adds support for the Scala language to Spacemacs.
 
 Features:
 - Syntax highlighting
+- Support for language backend. Either using [[https://ensime.github.io/][ENSIME]] or [[https://scalameta.org/metals/][Metals]]
 - Auto-completion
 - Syntax-checking
 - Refactoring
@@ -1944,7 +1958,6 @@ Features:
 - Eldoc integration
 - Test execution directly from Emacs
 - Automatic replacement of ASCII arrows with unicode ones
-- Automatic starting/stopping of [[https://ensime.github.io/][ENSIME]] IDE server
 
 **** Sml
 [[file:+lang/sml/README.org][+lang/sml/README.org]]
@@ -2195,6 +2208,15 @@ A speed reading mode for Emacs.
 Features:
 - Support for =speed-reading= of arbitrary texts
 
+* README.org files that need proper tags
+** Zig
+[[file:+lang/zig/README.org][+lang/zig/README.org]]
+
+This layer adds support for the zig programming language [[https://ziglang.org/]]
+
+Features:
+- Syntax Highlighting
+
 * Source control
 ** Git
 [[file:+source-control/git/README.org][+source-control/git/README.org]]
@@ -2219,7 +2241,6 @@ New to Magit? Checkout the [[https://magit.vc/about/][official intro]].
 This layers adds support for [[http://github.com][GitHub]].
 
 Features:
-- [[https://github.com/vermiculus/magithub][magithub]]: Magit-integrated interface to [[https://hub.github.com/][hub]] command line
 - [[https://github.com/magit/forge][forge]]: integration with various forges, such as GitHub and GitLab.
 - [[https://github.com/defunkt/gist.el][gist.el]]: full-featured mode to browse and post GitHub gists.
 - [[https://github.com/sshaw/git-link][git-link]]: quickly generate URLs for commits or files.
@@ -2815,6 +2836,7 @@ Features:
 Features:
 - adds copy support to the X-clipboard from the terminal.
 - adds paste support to the X-clipboard from the terminal.
+- [[https://github.com/redguardtoo/cliphist][cliphist]] package: integration with clipboard managers on Linux and Mac.
 
 ** Ycmd
 [[file:+tools/ycmd/README.org][+tools/ycmd/README.org]]
