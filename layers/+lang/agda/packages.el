@@ -1,6 +1,6 @@
 ;;; packages.el --- Agda2 Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Oliver Charles <ollie@ocharles.org.uk>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -58,6 +58,9 @@
            (agda2-highlight-record-face                . font-lock-type-face))))
       :config
       (progn
+        ; don't lose indentation on paste
+        (add-to-list 'spacemacs-indent-sensitive-modes 'agda2-mode)
+
         (spacemacs|define-transient-state goal-navigation
           :title "Goal Navigation Transient State"
           :doc "\n[_f_] next [_b_] previous [_q_] quit"

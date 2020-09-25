@@ -2,7 +2,7 @@
 ;;
 ;;; packages.el --- Spacemacs Multiple Cursors Layer packages File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Codruț Constantin Gușoi <codrut.gusoi@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -18,22 +18,25 @@
 
 (defun multiple-cursors/init-evil-mc ()
   (use-package evil-mc
+    :init
+    (progn
+      (add-hook 'prog-mode-hook 'turn-on-evil-mc-mode)
+      (add-hook 'text-mode-hook 'turn-on-evil-mc-mode))
     :config
     (progn
+      (add-hook 'magit-mode-hook 'turn-off-evil-mc-mode)
       (setq-default evil-mc-one-cursor-show-mode-line-text nil)
       (when (or (spacemacs/system-is-mac) (spacemacs/system-is-mswindows))
         (setq evil-mc-enable-bar-cursor nil))
 
       ;; evil-mc is not compatible with the paste transient state
-      (define-key evil-normal-state-map "p" 'spacemacs/evil-mc-paste-after)
-      (define-key evil-normal-state-map "P" 'spacemacs/evil-mc-paste-before)
+      (evil-define-key 'normal evil-mc-key-map
+        "p" #'spacemacs/evil-mc-paste-after
+        "P" #'spacemacs/evil-mc-paste-before)
 
-      (dolist (state-map `(,evil-normal-state-map ,evil-insert-state-map))
-        (dolist (keybinding `((,(kbd "C-M-j") . evil-mc-make-cursor-move-next-line)
-                              (,(kbd "C-M-k") . evil-mc-make-cursor-move-prev-line)))
-          (define-key state-map (car keybinding) (cdr keybinding))))
-      (add-hook 'prog-mode-hook 'turn-on-evil-mc-mode)
-      (add-hook 'text-mode-hook 'turn-on-evil-mc-mode))))
+      (evil-define-key '(normal insert) evil-mc-key-map
+        (kbd "C-M-j") #'evil-mc-make-cursor-move-next-line
+        (kbd "C-M-k") #'evil-mc-make-cursor-move-prev-line))))
 
 (defun multiple-cursors/init-multiple-cursors ()
   (use-package multiple-cursors
@@ -55,7 +58,7 @@
         "smst" 'mc/reverse-regions)
       (setq mc/always-run-for-all t)
       (with-eval-after-load 'multiple-cursors-core
-        (add-to-list 'mc/cmds-to-run-once 'helm-M-x)
+        (add-to-list 'mc/cmds-to-run-once 'spacemacs/helm-M-x-fuzzy-matching)
         (add-to-list 'mc/cmds-to-run-once 'counsel-M-x)
         (add-to-list 'mc/cmds-to-run-once 'spacemacs/default-pop-shell)
         ))))

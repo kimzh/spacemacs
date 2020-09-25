@@ -1,6 +1,6 @@
 ;;; packages.el --- Common Lisp Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -20,6 +20,7 @@
         helm
         helm-gtags
         parinfer
+        rainbow-identifiers
         slime
         (slime-company :requires company)
         ))
@@ -62,6 +63,9 @@
 
 (defun common-lisp/post-init-parinfer ()
   (add-hook 'lisp-mode-hook 'parinfer-mode))
+
+(defun common-lisp/post-init-rainbow-identifiers ()
+  (add-hook 'lisp-mode-hook #'colors//rainbow-identifiers-ignore-keywords))
 
 (defun common-lisp/pre-init-slime-company ()
   (spacemacs|use-package-add-hook slime

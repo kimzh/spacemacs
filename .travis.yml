@@ -1,5 +1,5 @@
 ---
-# TravisCI YAML file
+# TravisCI YAML file for publishing/updating/formatting Spacemacs documentation.
 language: generic
 sudo: required
 services:
@@ -8,9 +8,11 @@ branches:
   only:
   - master
   - develop
+cache:
+  directories:
+  - /tmp/elpa
+  - !/tmp/elpa/gnupg
 env:
-  matrix:
-  - EVM_EMACS=emacs-26.1-travis
   global:
   - secure: "M8NF1Uw7VGkLdNmWiUF4T+VOJXwN8KCKVQb45/BWVpGm88Rcfom/9bxRTUme8VYuzIavph32QF+P9KyhX8aj2p2FMItNnxiEySzap5UrLrNiwB6ZxbQglMJj0yMQKASynNBai9KKI7mYlsM5jRpFJ9OSgj7Ko00RIFpO3EpJ+kE="
   - BOT_NAME=emacspace
@@ -19,19 +21,7 @@ env:
 before_script:
   - docker pull jare/spacetools:latest
 script:
-  - |
-    cd /
-    rm -rf "${TRAVIS_BUILD_DIR}"
-    git clone "https://github.com/${SPACEMACS_REPO_SLUG}" \
-        -b "${TRAVIS_BRANCH}" \
-        "${TRAVIS_BUILD_DIR}"
-    cd "${TRAVIS_BUILD_DIR}"
-before_deploy:
-  - >
-    if ! [ "$BEFORE_DEPLOY_RUN" ]; then
-      export BEFORE_DEPLOY_RUN=1;
-      .travisci/pub_prep.sh
-    fi
+  - git checkout "${TRAVIS_BRANCH}" && .travisci/pub_prep.sh
 deploy:
   - provider: script
     skip_cleanup: true

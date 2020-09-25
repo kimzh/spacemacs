@@ -26,7 +26,7 @@
   - [[#why-are-my-font-settings-not-being-respected][Why are my font settings not being respected?]]
   - [[#why-am-i-getting-a-message-about-environment-variables-on-startup][Why am I getting a message about environment variables on startup?]]
   - [[#i-want-to-learn-elisp-where-do-i-start-][I want to learn elisp, where do I start ?]]
-- [[#how-do-i][How do I:]]
+- [[#how-do-i][How do I]]
   - [[#install-a-package-not-provided-by-a-layer][Install a package not provided by a layer?]]
   - [[#disable-a-package-completely][Disable a package completely?]]
   - [[#disable-a-package-only-for-a-specific-major-mode][Disable a package only for a specific major-mode?]]
@@ -58,7 +58,7 @@ The version is displayed on the upper right corner of the loading screen. You
 may also just type ~SPC f e v~.
 
 ** What is the official pronunciation of Spacemacs?
-As it is written, that is _space_ then _macs_.
+It's _space_ then _macs_.
 
 ** Why do you call this a "distribution", I don't see any "Spacemacs" executable?
 Although we could do it we don't package Emacs with Spacemacs. We allow users to
@@ -280,7 +280,7 @@ Practical reference with code examples for various situations that you will
 encounter: [[http://caiorss.github.io/Emacs-Elisp-Programming/][http://caiorss.github.io/Emacs-Elisp-Programming/]], more particularly
 sections [[http://caiorss.github.io/Emacs-Elisp-Programming/Elisp_Programming.html][Elisp Programming]] and [[http://caiorss.github.io/Emacs-Elisp-Programming/Elisp_Snippets.html][Elisp code snippets]].
 
-* How do I:
+* How do I
 ** Install a package not provided by a layer?
 Spacemacs provides a variable in the =dotspacemacs/layers= function in
 =.spacemacs= called =dotspacemacs-additional-packages=. Just add a package name
@@ -338,12 +338,7 @@ Examples:
 Add the following snippet to your =dotspacemacs/user-config= function:
 
 #+BEGIN_SRC emacs-lisp
-  ;; Make evil-mode up/down operate in screen lines instead of logical lines
-  (define-key evil-motion-state-map "j" 'evil-next-visual-line)
-  (define-key evil-motion-state-map "k" 'evil-previous-visual-line)
-  ;; Also in visual mode
-  (define-key evil-visual-state-map "j" 'evil-next-visual-line)
-  (define-key evil-visual-state-map "k" 'evil-previous-visual-line)
+  (spacemacs/toggle-visual-line-navigation-globally-on)
 #+END_SRC
 
 ** Disable evilification of a mode?
@@ -383,6 +378,8 @@ include this on your =dotspacemacs/user-config=.
   (add-hook 'js2-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
   ;; For all programming modes
   (add-hook 'prog-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
+  ;; For all modes
+  (add-hook 'after-change-major-mode-hook #'(lambda () (modify-syntax-entry ?_ "w")))
 #+END_SRC
 
 ** Setup =$PATH=?

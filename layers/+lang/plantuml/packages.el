@@ -1,6 +1,6 @@
 ;;; packages.el --- plantuml layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Robert O'Connor <robby.oconnor@gmail.com>
 ;; Contributor: Carlo Sciolla <carlo.sciolla@gmail.com>
@@ -30,6 +30,8 @@
     :mode ("\\.\\(pum\\|puml\\)\\'" . plantuml-mode)
     :config
     (progn
+      ;; Our default is jar execution, not server as server is not working reliable see #13574
+      (setq plantuml-default-exec-mode 'jar)
       (when (boundp 'spacemacs-indent-sensitive-modes)
         ;; for now plantuml electric indentation is buggy and does not
         ;; really work, let's disable auto-indentation on paste for

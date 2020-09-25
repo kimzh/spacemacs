@@ -1,6 +1,6 @@
-;;; config.el --- Major modes Layer packages File for Spacemacs
+;;; packages.el --- Major modes Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -65,6 +65,7 @@
         "a" 'pkgbuild-tar
         "u" 'pkgbuild-browse-url
         "m" 'pkgbuild-update-sums-line
+        "s" 'pkgbuild-update-srcinfo
         "e" 'pkgbuild-etags))))
 
 (defun major-modes/init-qml-mode ()

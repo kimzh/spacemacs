@@ -1,6 +1,6 @@
 ;;; packages.el --- Latex Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -52,12 +52,12 @@
     :config
     (progn
       ;; Key bindings for plain TeX
-      (dolist (mode '(tex-mode latex-mode))
+      (dolist (mode '(tex-mode latex-mode context-mode))
         (spacemacs/set-leader-keys-for-major-mode mode
           "\\"  'TeX-insert-macro                            ;; C-c C-m
           "-"   'TeX-recenter-output-buffer                  ;; C-c C-l
           "%"   'TeX-comment-or-uncomment-paragraph          ;; C-c %
-          ";"   'TeX-comment-or-uncomment-region             ;; C-c ; or C-c :
+          ";"   'comment-or-uncomment-region                 ;; C-c ; or C-c :
           ;; TeX-command-run-all runs compile and open the viewer
           "a"   'TeX-command-run-all                         ;; C-c C-a
           "b"   'latex/build

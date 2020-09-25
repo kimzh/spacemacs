@@ -1,6 +1,6 @@
 ;;; core-configuration-layer-ftest.el --- Spacemacs Functional Test File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -50,6 +50,9 @@
 ;; ---------------------------------------------------------------------------
 
 (ert-deftest test-stable-elpa-verify-archive--verification-ok ()
+  ;; FIXME: >_> @syl20bnr
+  (skip-unless (not (and (version< emacs-version "27.1")
+                         (string-equal system-type "windows-nt"))))
   (cl-letf (((symbol-function 'configuration-layer//stable-elpa-tarball-local-file)
              (lambda ()
                (concat spacemacs-test-directory
@@ -70,6 +73,9 @@
     (should (equal t (configuration-layer//stable-elpa-verify-archive)))))
 
 (ert-deftest test-stable-elpa-verify-archive--verification-failed ()
+  ;; FIXME: >_> @syl20bnr
+  (skip-unless (not (and (version< emacs-version "27.1")
+                         (string-equal system-type "windows-nt"))))
   (let (verification-error)
     (cl-letf (((symbol-function 'configuration-layer//stable-elpa-tarball-local-file)
                (lambda ()

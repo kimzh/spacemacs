@@ -1,6 +1,6 @@
 ;;; packages.el --- imenu-list Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -24,13 +24,15 @@
   (use-package imenu-list
     :defer t
     :init
-    (progn
-      (setq imenu-list-focus-after-activation t
-            imenu-list-auto-resize t)
-      (spacemacs/set-leader-keys "bt" #'imenu-list-smart-toggle))
+    (setq imenu-list-focus-after-activation t
+          imenu-list-auto-resize t)
     :config
     (evilified-state-evilify-map imenu-list-major-mode-map
       :mode imenu-list-major-mode
       :bindings
       "d" #'imenu-list-display-entry
-      "r" #'imenu-list-refresh)))
+      "r" #'imenu-list-refresh)
+    :spacebind
+    (:global
+     (("b" "Buffers" ("i" spacemacs/imenu-list-smart-focus "Focus imenu sidebar"))
+      ("T" "UI toggles/themes" ("i" imenu-list-smart-toggle "Toggle imenu sidebar"))))))

@@ -1,6 +1,6 @@
 ;;; layers.el --- C/C++ Layer declarations File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -9,6 +9,9 @@
 ;;
 ;;; License: GPLv3
 
-(when (and (boundp 'c-c++-backend)
-           (member c-c++-backend '(lsp-cquery lsp-ccls)))
-  (configuration-layer/declare-layer 'lsp))
+(when (fboundp 'spacemacs//c-c++-backend)
+  (pcase (spacemacs//c-c++-backend)
+    (`lsp-clangd (configuration-layer/declare-layer-dependencies '(lsp dap)))
+    (`lsp-ccls (configuration-layer/declare-layer-dependencies '(lsp dap)))
+    (`rtags (configuration-layer/declare-layer-dependencies '(ggtags)))
+    (`ycmd (configuration-layer/declare-layer-dependencies '(ycmd)))))

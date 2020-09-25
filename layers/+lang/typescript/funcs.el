@@ -1,6 +1,6 @@
 ;;; funcs.el --- TypeScript  Layer functions File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -12,48 +12,30 @@
 
 ;; backend
 
+(defun spacemacs//typescript-backend ()
+  "Returns selected backend."
+  (if typescript-backend
+      typescript-backend
+    (cond
+     ((configuration-layer/layer-used-p 'lsp) 'lsp)
+     (t 'tide))))
+
 (defun spacemacs//typescript-setup-backend ()
   "Conditionally setup typescript backend."
-  (pcase typescript-backend
-    (`tide (spacemacs//typescript-setup-tide))
+  (pcase (spacemacs//typescript-backend)
+    (`tide (spacemacs//tide-setup))
     (`lsp (spacemacs//typescript-setup-lsp))))
 
 (defun spacemacs//typescript-setup-company ()
   "Conditionally setup company based on backend."
-  (pcase typescript-backend
-    (`tide (spacemacs//typescript-setup-tide-company))
-    (`lsp (spacemacs//typescript-setup-lsp-company))))
+  (pcase (spacemacs//typescript-backend)
+    (`tide (spacemacs//tide-setup-company 'typescript-mode 'typescript-tsx-mode))))
 
 (defun spacemacs//typescript-setup-eldoc ()
   "Conditionally setup eldoc based on backend."
-  (pcase typescript-backend
-    (`tide (spacemacs//typescript-setup-tide-eldoc))
+  (pcase (spacemacs//typescript-backend)
+    (`tide (spacemacs//tide-setup-eldoc))
     (`lsp (spacemacs//typescript-setup-lsp-eldoc))))
-
-
-;; tide
-
-(defun spacemacs//typescript-setup-tide ()
-  "Setup tide backend."
-  (progn
-    (evilified-state-evilify tide-references-mode tide-references-mode-map
-      (kbd "C-k") 'tide-find-previous-reference
-      (kbd "C-j") 'tide-find-next-reference
-      (kbd "C-l") 'tide-goto-reference)
-    (tide-setup)))
-
-(defun spacemacs//typescript-setup-tide-company ()
-  "Setup tide auto-completion."
-  (spacemacs|add-company-backends
-    :backends company-tide
-    :modes typescript-mode typescript-tsx-mode
-    :variables
-    company-minimum-prefix-length 2)
-  (company-mode))
-
-(defun spacemacs//typescript-setup-tide-eldoc ()
-  "Setup eldoc for tide."
-  (eldoc-mode))
 
 
 ;; lsp
@@ -63,22 +45,8 @@
   (if (configuration-layer/layer-used-p 'lsp)
       (progn
         (when (not typescript-lsp-linter)
-          (setq-local lsp-prefer-flymake :none))
+          (setq-local lsp-diagnostics-provider :none))
         (lsp))
-    (message (concat "`lsp' layer is not installed, "
-                     "please add `lsp' layer to your dotfile."))))
-
-(defun spacemacs//typescript-setup-lsp-company ()
-  "Setup lsp auto-completion."
-  (if (configuration-layer/layer-used-p 'lsp)
-      (progn
-        (spacemacs|add-company-backends
-          :backends company-lsp
-          :modes typescript-mode typescript-tsx-mode
-          :variables company-minimum-prefix-length 2
-          :append-hooks nil
-          :call-hooks t)
-        (company-mode))
     (message (concat "`lsp' layer is not installed, "
                      "please add `lsp' layer to your dotfile."))))
 
@@ -167,3 +135,7 @@
   (dolist (value values)
     (add-to-list 'safe-local-variable-values
                  (cons 'typescript-backend value))))
+
+(defun spacemacs//typescript-setup-checkers ()
+  (when-let* ((found (executable-find "eslint_d")))
+    (set (make-local-variable 'flycheck-javascript-eslint-executable) found)))

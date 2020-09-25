@@ -1,6 +1,6 @@
 ;;; packages.el --- elfeed Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -11,15 +11,15 @@
 
 (setq elfeed-packages
       '(elfeed
-        elfeed-goodies
+        (elfeed-goodies :toggle elfeed-enable-goodies)
         elfeed-org
-        elfeed-web
+        (elfeed-web :toggle elfeed-enable-web-interface)
         ))
 
 (defun elfeed/init-elfeed ()
   (use-package elfeed
     :defer t
-    :init (spacemacs/set-leader-keys "af" 'elfeed)
+    :init (spacemacs/set-leader-keys "are" 'elfeed)
     :config
     (progn
       (evilified-state-evilify-map elfeed-search-mode-map
@@ -70,8 +70,9 @@
   (use-package elfeed-web
     :defer t
     :commands elfeed-web-stop
-    :init (when elfeed-enable-web-interface
-            ;; TODO check if the port is already in use
-            ;; hack to force elfeed feature to be required before elfeed-search
-            (require 'elfeed)
-            (elfeed-web-start))))
+    :init
+    (progn
+      ;; TODO check if the port is already in use
+      ;; hack to force elfeed feature to be required before elfeed-search
+      (require 'elfeed)
+      (elfeed-web-start))))

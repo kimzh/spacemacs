@@ -1,6 +1,6 @@
 ;;; packages.el --- Markdown Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -52,8 +52,9 @@
 (defun markdown/init-markdown-mode ()
   (use-package markdown-mode
     :mode
-    (("\\.m[k]d" . markdown-mode)
-     ("\\.mdk" . markdown-mode))
+    (("\\.mkd\\'" . markdown-mode)
+     ("\\.mdk\\'" . markdown-mode)
+     ("\\.mdx\\'" . markdown-mode))
     :defer t
     :config
     (progn
@@ -137,6 +138,7 @@
           "xc"  'markdown-insert-code
           "xC"  'markdown-insert-gfm-code-block
           "xi"  'markdown-insert-italic
+          "xk"  'markdown-insert-kbd
           "xp"  'markdown-insert-pre
           "xq"  'markdown-insert-blockquote
           "xs"  'markdown-insert-strike-through
@@ -159,7 +161,7 @@
         "gl" 'outline-next-visible-heading)
       ;; Promotion, Demotion
       (add-hook 'spacemacs-editing-style-hook
-                'spacemacs//markdown-hjkl-promotion-demotion)
+         'spacemacs//markdown-hjkl-promotion-demotion)
       (spacemacs//markdown-hjkl-promotion-demotion dotspacemacs-editing-style)
       (define-key markdown-mode-map (kbd "M-<down>") 'markdown-move-down)
       (define-key markdown-mode-map (kbd "M-<left>") 'markdown-promote)

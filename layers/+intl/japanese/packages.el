@@ -1,6 +1,6 @@
 ;;; packages.el --- Japanese Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Kenji Miyazaki <kenjimyzk@gmail.com>
 ;; URL: https://github.com/kenjimyzk/
@@ -35,8 +35,12 @@
     (setq migemo-regex-dictionary nil)
     (setq migemo-coding-system 'utf-8-unix)
     (setq search-default-regexp-mode nil)
-    (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
-    (migemo-init)))
+    (cond
+     ((eq system-type 'darwin)
+      (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict"))
+     ((eq system-type 'gnu/linux)
+      (setq migemo-dictionary "/usr/share/cmigemo/utf-8/migemo-dict"))))
+  (migemo-init))
 
 (defun japanese/init-avy-migemo ()
   (use-package avy-migemo

@@ -1,6 +1,6 @@
 ;;; packages.el --- shell packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -9,30 +9,35 @@
 ;;
 ;;; License: GPLv3
 
-(setq shell-packages
-      '(
-        (comint :location built-in)
-        company
-        esh-help
-        (eshell :location built-in)
-        eshell-prompt-extras
-        eshell-z
-        helm
-        ivy
-        magit
-        multi-term
-        org
-        projectile
-        (shell :location built-in)
-        shell-pop
-        (term :location built-in)
-        xterm-color
-        vi-tilde-fringe
-        ))
+(defconst shell-packages
+  '(
+    (comint :location built-in)
+    company
+    esh-help
+    (eshell :location built-in)
+    eshell-prompt-extras
+    eshell-z
+    helm
+    ivy
+    magit
+    multi-term
+    org
+    projectile
+    (shell :location built-in)
+    shell-pop
+    (term :location built-in)
+    xterm-color
+    terminal-here
+    vi-tilde-fringe
+    window-purpose
+    (vterm :toggle (not (spacemacs/system-is-mswindows)))))
+
 
 (defun shell/init-comint ()
   (setq comint-prompt-read-only t)
-  (add-hook 'comint-mode-hook 'spacemacs/disable-hl-line-mode))
+  (add-hook 'comint-mode-hook 'spacemacs/disable-hl-line-mode)
+  (with-eval-after-load 'centered-cursor-mode
+    (add-hook 'comint-mode-hook 'spacemacs//inhibit-global-centered-cursor-mode)))
 
 (defun shell/pre-init-company ()
   ;; support in eshell
@@ -81,7 +86,9 @@
       (autoload 'eshell-delchar-or-maybe-eof "em-rebind")
 
       (add-hook 'eshell-mode-hook 'spacemacs//init-eshell)
-      (add-hook 'eshell-mode-hook 'spacemacs/disable-hl-line-mode))
+      (add-hook 'eshell-mode-hook 'spacemacs/disable-hl-line-mode)
+      (with-eval-after-load 'centered-cursor-mode
+        (add-hook 'eshell-mode-hook 'spacemacs//inhibit-global-centered-cursor-mode)))
     :config
     (progn
 
@@ -134,13 +141,10 @@
 
 (defun shell/init-eshell-z ()
   (use-package eshell-z
-    :defer t
+    :after eshell
     :init
-    (progn
-      (setq eshell-z-freq-dir-hash-table-file-name
-            (concat spacemacs-cache-directory "eshell/.z"))
-      (with-eval-after-load 'eshell
-        (require 'eshell-z)))))
+    (setq eshell-z-freq-dir-hash-table-file-name
+          (concat spacemacs-cache-directory "eshell/.z"))))
 
 (defun shell/pre-init-helm ()
   (spacemacs|use-package-add-hook helm
@@ -214,7 +218,9 @@
              ;; Send other commands to the default handler.
              (t (comint-simple-send proc command))))))
   (add-hook 'shell-mode-hook 'shell-comint-input-sender-hook)
-  (add-hook 'shell-mode-hook 'spacemacs/disable-hl-line-mode))
+  (add-hook 'shell-mode-hook 'spacemacs/disable-hl-line-mode)
+  (with-eval-after-load 'centered-cursor-mode
+    (add-hook 'shell-mode-hook 'spacemacs//inhibit-global-centered-cursor-mode)))
 
 (defun shell/init-shell-pop ()
   (use-package shell-pop
@@ -225,24 +231,33 @@
             shell-pop-window-size     shell-default-height
             shell-pop-term-shell      shell-default-term-shell
             shell-pop-full-span       shell-default-full-span)
-      (make-shell-pop-command eshell)
-      (make-shell-pop-command term shell-pop-term-shell)
-      (make-shell-pop-command ansi-term shell-pop-term-shell)
-      (make-shell-pop-command inferior-shell)
-      (make-shell-pop-command multiterm)
+      (make-shell-pop-command "eshell" eshell)
+      (make-shell-pop-command "term" term shell-pop-term-shell)
+      (make-shell-pop-command "ansi-term" ansi-term shell-pop-term-shell)
+      (make-shell-pop-command "inferior-shell" inferior-shell)
+      (make-shell-pop-command "multiterm" multiterm)
+
+      (let* ((initial-shell-mode-name (format "%S-mode" shell-default-shell))
+             (initial-shell-mode (intern initial-shell-mode-name)))
+        (evil-set-initial-state initial-shell-mode 'insert))
+
+      (when (fboundp 'spacemacs/make-variable-layout-local)
+        (spacemacs/make-variable-layout-local 'shell-pop-last-shell-buffer-index 1
+                                              'shell-pop-last-shell-buffer-name ""
+                                              'shell-pop-last-buffer nil))
 
       (add-hook 'term-mode-hook 'ansi-term-handle-close)
-      (add-hook 'term-mode-hook (lambda () (linum-mode -1)))
 
       (spacemacs/set-leader-keys
         "'"   'spacemacs/default-pop-shell
-        "ase" 'spacemacs/shell-pop-eshell
-        "asi" 'spacemacs/shell-pop-inferior-shell
-        "asm" 'spacemacs/shell-pop-multiterm
-        "ast" 'spacemacs/shell-pop-ansi-term
-        "asT" 'spacemacs/shell-pop-term)
-      (spacemacs/declare-prefix "'" "open shell")
-      (spacemacs/declare-prefix "as" "shells"))))
+        "atse" 'spacemacs/shell-pop-eshell
+        "atsi" 'spacemacs/shell-pop-inferior-shell
+        "atsm" 'spacemacs/shell-pop-multiterm
+        "atst" 'spacemacs/shell-pop-ansi-term
+        "atsT" 'spacemacs/shell-pop-term)
+      (spacemacs/declare-prefix "'" "open shell"))
+    :config
+    (add-hook 'shell-pop-out-hook #'spacemacs//shell-pop-restore-window)))
 
 (defun shell/init-term ()
   (spacemacs/register-repl 'term 'term)
@@ -251,26 +266,30 @@
     "Send tab in term mode."
     (interactive)
     (term-send-raw-string "\t"))
-  ;; hack to fix pasting issue, the paste transient-state won't
-  ;; work in term
-  (evil-define-key 'normal term-raw-map "p" 'term-paste)
-  (evil-define-key 'normal term-raw-map (kbd "<mouse-2>") 'term-mouse-paste)
-  (evil-define-key 'insert term-raw-map (kbd "<mouse-2>") 'term-mouse-paste)
-  (evil-define-key 'normal term-raw-map (kbd "<mouse-3>") 'term-mouse-paste)
-  (evil-define-key 'insert term-raw-map (kbd "<mouse-3>") 'term-mouse-paste)
-  (evil-define-key 'insert term-raw-map (kbd "C-c C-d") 'term-send-eof)
-  (evil-define-key 'insert term-raw-map (kbd "C-c C-z") 'term-stop-subjob)
-  (evil-define-key 'insert term-raw-map (kbd "<tab>") 'term-send-tab)
 
   (when (eq dotspacemacs-editing-style 'vim)
     (evil-define-key 'insert term-raw-map
       (kbd "C-k") 'term-send-up
       (kbd "C-j") 'term-send-down))
-  (evil-define-key 'normal term-raw-map
-    (kbd "C-k") 'term-send-up
-    (kbd "C-j") 'term-send-down)
 
-  (add-hook 'term-mode-hook 'spacemacs/disable-hl-line-mode))
+  (evil-define-key 'insert term-raw-map
+    (kbd "<mouse-2>") 'term-mouse-paste
+    (kbd "<mouse-3>") 'term-mouse-paste
+    (kbd "C-c C-d") 'term-send-eof
+    (kbd "C-c C-z") 'term-stop-subjob
+    (kbd "<tab>") 'term-send-tab)
+
+  (evil-define-key 'normal term-raw-map
+    (kbd "<mouse-2>") 'term-mouse-paste
+    (kbd "<mouse-3>") 'term-mouse-paste
+    (kbd "C-k") 'term-send-up
+    (kbd "C-j") 'term-send-down
+    ;; hack to fix pasting issue, the paste transient-state won't work in term
+    "p" 'term-paste)
+
+  (add-hook 'term-mode-hook 'spacemacs/disable-hl-line-mode)
+  (with-eval-after-load 'centered-cursor-mode
+    (add-hook 'term-mode-hook 'spacemacs//inhibit-global-centered-cursor-mode)))
 
 (defun shell/init-xterm-color ()
   (use-package xterm-color
@@ -282,9 +301,62 @@
             (remove 'ansi-color-process-output comint-output-filter-functions))
       (add-hook 'eshell-mode-hook 'spacemacs/init-eshell-xterm-color))))
 
+(defun shell/init-terminal-here ()
+  (use-package terminal-here
+    :defer t
+    :commands (terminal-here-launch terminal-here-project-launch)
+    :init
+    (progn
+      (spacemacs/register-repl 'terminal-here 'terminal-here)
+      (spacemacs/set-leader-keys
+        "\"" 'terminal-here-launch
+        "p \"" 'terminal-here-project-launch))))
+
+
 (defun shell/post-init-vi-tilde-fringe ()
   (spacemacs/add-to-hooks 'spacemacs/disable-vi-tilde-fringe
                           '(comint-mode-hook
                             eshell-mode-hook
                             shell-mode-hook
                             term-mode-hook)))
+
+(defun shell/init-vterm ()
+  (use-package vterm
+    :defer t
+    :commands (vterm vterm-other-window)
+
+    :init
+    (progn
+      (make-shell-pop-command "vterm" vterm)
+      (spacemacs/set-leader-keys "atsv" 'spacemacs/shell-pop-vterm)
+      (spacemacs/register-repl 'vterm 'vterm))
+
+    :config
+    (progn
+      (setq vterm-shell shell-default-term-shell)
+
+      (define-key vterm-mode-map (kbd "M-n") 'vterm-send-down)
+      (define-key vterm-mode-map (kbd "M-p") 'vterm-send-up)
+      (define-key vterm-mode-map (kbd "M-y") 'vterm-yank-pop)
+      (define-key vterm-mode-map (kbd "M-/") 'vterm-send-tab)
+
+      (evil-define-key 'insert vterm-mode-map (kbd "C-y") 'vterm-yank)
+
+      (evil-define-key 'normal vterm-mode-map
+        [escape] 'vterm-send-escape
+        [return] 'vterm-send-return
+        (kbd "p") 'vterm-yank
+        (kbd "u") 'vterm-undo)
+
+      (add-hook 'vterm-mode-hook 'spacemacs/disable-hl-line-mode)
+
+      (with-eval-after-load 'centered-cursor-mode
+        (add-hook 'vterm-mode-hook 'spacemacs//inhibit-global-centered-cursor-mode)))))
+
+(defun shell/post-init-window-purpose ()
+  (purpose-set-extension-configuration
+   :shell-layer
+   (purpose-conf :mode-purposes '((vterm-mode . terminal)
+                                  (eshell-mode . terminal)
+                                  (shell-mode . terminal)
+                                  (term-mode . terminal)))))

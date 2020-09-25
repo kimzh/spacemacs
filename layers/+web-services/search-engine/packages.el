@@ -1,6 +1,6 @@
 ;;; packages.el --- search-engine Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -23,7 +23,7 @@
     :init
     (progn
       (spacemacs/set-leader-keys
-        "a/" 'spacemacs/search-engine-select)
+        "aw/" 'spacemacs/search-engine-select)
       (setq search-engine-alist
             `((amazon
                :name "Amazon"
@@ -77,7 +77,7 @@
                :name "Npmjs"
                :url "https://www.npmjs.com/search?q=%s")
               (hoogle
-               :name "Hoggle 5"
+               :name "Hoogle 5"
                :url "https://hoogle.haskell.org/?hoogle=%s")
               (haskell-packages
                :name "Hackage Package Search"
@@ -97,6 +97,9 @@
               (wolfram-alpha
                :name "Wolfram Alpha"
                :url "https://www.wolframalpha.com/input/?i=%s")
+              (ctan
+               :name "CTAN"
+               :url "https://ctan.org/search?phrase=%s")
               ,@search-engine-config-list))
       (dolist (engine search-engine-alist)
         (let ((func (intern (format "engine/search-%S" (car engine)))))

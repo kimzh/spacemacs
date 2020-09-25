@@ -1,6 +1,6 @@
 ;;; packages.el --- Emacs Lisp Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -22,6 +22,7 @@
         evil-cleverparens
         eval-sexp-fu
         flycheck
+        flycheck-elsa
         flycheck-package
         ggtags
         counsel-gtags
@@ -31,9 +32,11 @@
         nameless
         overseer
         parinfer
+        rainbow-identifiers
         semantic
         smartparens
         srefactor
+        emr
         ))
 
 (defun emacs-lisp/init-ielm ()
@@ -114,7 +117,7 @@
     :defer (spacemacs/defer)
     :init
     (progn
-      (spacemacs|require 'auto-compile)
+      (spacemacs|require-when-dumping 'auto-compile)
       (setq auto-compile-display-buffer nil
             ;; lets spaceline manage the mode-line
             auto-compile-use-mode-line nil
@@ -132,18 +135,23 @@
     :defer (spacemacs/defer)
     :init
     (progn
-      (spacemacs|require 'elisp-slime-nav)
+      (spacemacs|require-when-dumping 'elisp-slime-nav)
       (add-hook 'emacs-lisp-mode-hook 'elisp-slime-nav-mode)
       (dolist (mode '(emacs-lisp-mode lisp-interaction-mode))
         (spacemacs/declare-prefix-for-mode mode "mg" "find-symbol")
-        (spacemacs/declare-prefix-for-mode mode "mh" "help")
         (spacemacs/set-leader-keys-for-major-mode mode
-          "hh" 'elisp-slime-nav-describe-elisp-thing-at-point)
+          "gb" 'xref-pop-marker-stack)
+        (spacemacs/declare-prefix-for-mode mode "mh" "help")
+
+        ;; Load better help mode if helpful is installed
+        (if (configuration-layer/layer-used-p 'helpful)
+            (spacemacs/set-leader-keys-for-major-mode mode
+              "hh" 'helpful-at-point)
+          (spacemacs/set-leader-keys-for-major-mode mode
+            "hh" 'elisp-slime-nav-describe-elisp-thing-at-point))
         (let ((jumpl (intern (format "spacemacs-jump-handlers-%S" mode))))
           (add-to-list jumpl 'elisp-slime-nav-find-elisp-thing-at-point))))
-    :config (spacemacs|hide-lighter elisp-slime-nav-mode)
-
-    ))
+    :config (spacemacs|hide-lighter elisp-slime-nav-mode)))
 
 (defun emacs-lisp/init-emacs-lisp ()
   (dolist (mode '(emacs-lisp-mode lisp-interaction-mode))
@@ -186,38 +194,40 @@
         "dm" 'spacemacs/macrostep-transient-state/body))))
 
 (defun emacs-lisp/init-nameless ()
-  (use-package nameless
-    :defer (spacemacs/defer)
-    :init
-    (progn
-      (spacemacs|require 'nameless)
-      (setq
-       ;; always show the separator since it can have a semantic purpose
-       ;; like in Spacemacs where - is variable and / is a function.
-       ;; moreover it makes nameless work for all kind of separators.
-       nameless-separator nil
-       ;; Use > as the defautl prefix : is already used for
-       ;; keywords
-       nameless-prefix ">")
-      ;; some default aliases for Spacemacs source code
-      (setq nameless-global-aliases '(("SB" . "spacemacs-buffer")
-                                      ("S"  . "spacemacs")
-                                      (".S"  . "dotspacemacs")
-                                      ("CL" . "configuration-layer")))
-      ;; make `nameless-current-name' safe as a local variable for string values
-      (put 'nameless-current-name 'safe-local-variable #'stringp)
-      (spacemacs|diminish nameless-mode " 🅽" " [n]")
-      (spacemacs|add-toggle nameless
-        :status nameless-mode
-        :on (nameless-mode)
-        :off (nameless-mode -1)
-        :documentation "Hide package namespaces in your emacs-lisp code."
-        :evil-leader-for-mode (emacs-lisp-mode . "Tn"))
-      ;; activate nameless only when in a GUI
-      ;; in a terminal nameless triggers all sorts of graphical glitches.
-      (spacemacs|do-after-display-system-init
-       (when emacs-lisp-hide-namespace-prefix
-         (spacemacs/toggle-nameless-on-register-hook-emacs-lisp-mode))))))
+    (use-package nameless
+      :defer (spacemacs/defer)
+      :init
+      (progn
+        (spacemacs|require-when-dumping 'nameless)
+        (setq
+         ;; always show the separator since it can have a semantic purpose
+         ;; like in Spacemacs where - is variable and / is a function.
+         ;; moreover it makes nameless work for all kind of separators.
+         nameless-separator nil
+         ;; Use > as the defautl prefix : is already used for
+         ;; keywords
+         nameless-prefix ">")
+        ;; some default aliases for Spacemacs source code
+        (setq nameless-global-aliases '(("SB" . "spacemacs-buffer")
+                                        ("S"  . "spacemacs")
+                                        (".S"  . "dotspacemacs")
+                                        ("CL" . "configuration-layer")))
+        ;; make `nameless-current-name' safe as a local variable for string
+        ;; values
+        (put 'nameless-current-name 'safe-local-variable #'stringp)
+        (spacemacs|diminish nameless-mode " 🅽" " [n]")
+        (spacemacs|add-toggle nameless
+          :status nameless-mode
+          :on (nameless-mode)
+          :off (nameless-mode -1)
+          :documentation "Hide package namespaces in your emacs-lisp code."
+          :evil-leader-for-mode (emacs-lisp-mode . "Tn"))
+        ;; activate nameless only when in a GUI
+        ;; in a terminal nameless triggers all sorts of graphical glitches.
+        (spacemacs|unless-dumping-and-eval-after-loaded-dump nameless
+          (spacemacs|do-after-display-system-init
+           (when emacs-lisp-hide-namespace-prefix
+             (spacemacs/toggle-nameless-on-register-hook-emacs-lisp-mode)))))))
 
 (defun emacs-lisp/init-overseer ()
   (use-package overseer
@@ -258,6 +268,10 @@
   (use-package flycheck-package
     :hook (emacs-lisp-mode . flycheck-package-setup)))
 
+(defun emacs-lisp/init-flycheck-elsa ()
+  (use-package flycheck-elsa
+    :hook (emacs-lisp-mode . flycheck-elsa-setup)))
+
 (defun emacs-lisp/post-init-counsel-gtags ()
   (spacemacs/counsel-gtags-define-keys-for-mode 'emacs-lisp-mode))
 
@@ -269,6 +283,9 @@
 
 (defun emacs-lisp/post-init-parinfer ()
   (add-hook 'emacs-lisp-mode-hook 'parinfer-mode))
+
+(defun emacs-lisp/post-init-rainbow-identifiers ()
+  (add-hook 'emacs-lisp-mode-hook #'colors//rainbow-identifiers-ignore-keywords))
 
 (defun emacs-lisp/post-init-semantic ()
   (add-hook 'emacs-lisp-mode-hook 'semantic-mode)
@@ -296,3 +313,35 @@
     (spacemacs/set-leader-keys-for-major-mode mode
       "ec" 'spacemacs/eval-current-form-sp
       "es" 'spacemacs/eval-current-symbol-sp)))
+
+(defun emacs-lisp/init-emr ()
+  (use-package emr
+    :config
+    (let ((key-binding-prefixes
+           '(("mr" . "refactor")
+             ("mrd" . "delete")
+             ("mre" . "extract/expand")
+             ("mrf" . "find/function")
+             ("mri" . "insert/inline"))))
+      (mapc (lambda (x) (spacemacs/declare-prefix-for-mode
+                          'emacs-lisp-mode (car x) (cdr x)))
+            key-binding-prefixes))
+    (spacemacs/set-leader-keys-for-major-mode 'emacs-lisp-mode
+      "rfe" #'emr-el-implement-function
+      "rfd" #'emr-el-find-unused-definitions
+
+      "ref" #'emr-el-extract-function
+      "rev" #'emr-el-extract-variable
+      "rel" #'emr-el-extract-to-let
+      "rec" #'emr-el-extract-constant
+      "rea" #'emr-el-extract-autoload
+
+      "riv" #'emr-el-inline-variable
+      "ris" #'emr-el-inline-let-variable
+      "rif" #'emr-el-inline-function
+      "ria" #'emr-el-insert-autoload-directive
+
+      "rdl" #'emr-el-delete-let-binding-form
+      "rdd" #'emr-el-delete-unused-definition
+
+      "ew"  #'emr-el-eval-and-replace)))

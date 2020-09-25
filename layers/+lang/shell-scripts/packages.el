@@ -1,6 +1,6 @@
 ;;; packages.el --- Shell Scripts Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -84,7 +84,8 @@
         (when (and buffer-file-name
                    (string-match-p "\\.zsh\\'" buffer-file-name))
           (sh-set-shell "zsh")))
-      (add-hook 'sh-mode-hook 'spacemacs//setup-shell))))
+      (add-hook 'sh-mode-hook 'spacemacs//setup-shell)
+      (add-hook 'sh-mode-hook 'spacemacs//shell-scripts-setup-backend))))
 
 (defun shell-scripts/post-init-ggtags ()
   (add-hook 'sh-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))

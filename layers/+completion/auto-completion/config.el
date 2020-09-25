@@ -1,6 +1,6 @@
 ;;; config.el --- Auto-completion configuration File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -38,6 +38,9 @@ selection.")
   "Timeout (seconds) when waiting for the second key of
 `auto-completion-complete-with-key-sequence'.")
 
+(defvar auto-completion-minimum-prefix-length 2
+  "The minimum prefix length for idle completion.")
+
 (defvar auto-completion-idle-delay 0.2
   "Delay (seconds) before completions are shown.")
 
@@ -51,6 +54,9 @@ selection.")
   "If non nil the docstring appears in a tooltip.
 If set to `manual', help tooltip appears only when invoked
 manually.")
+
+(defvar auto-completion-use-company-box nil
+  "If non nil company-box is used.")
 
 (defvar company-mode-completion-cancel-keywords
   '("do"

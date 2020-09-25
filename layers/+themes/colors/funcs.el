@@ -1,6 +1,6 @@
 ;;; funcs.el --- Colors Layer functions File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -16,6 +16,12 @@
   "Enable rainbow identifiers if the major mode is a prog mode."
   (when (derived-mode-p 'prog-mode)
     (rainbow-identifiers-mode)))
+
+(defun colors//rainbow-identifiers-ignore-keywords ()
+  "Do not colorize stuff with ‘font-lock-keyword-face’."
+  (setq-local rainbow-identifiers-faces-to-override
+              (delq 'font-lock-keyword-face
+                    rainbow-identifiers-faces-to-override)))
 
 (defun colors//tweak-theme-colors (theme)
   "Tweak color themes by adjusting rainbow-identifiers."

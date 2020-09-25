@@ -1,6 +1,6 @@
 ;;; packages.el --- Git Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -26,11 +26,13 @@
         (helm-gitignore :requires helm)
         magit
         magit-gitflow
+        magit-section
         magit-svn
+        org
         (orgit :requires org)
         smeargle
-        transient
-        ))
+        transient))
+
 
 (defun git/pre-init-golden-ratio ()
   (spacemacs|use-package-add-hook golden-ratio
@@ -77,10 +79,13 @@
     (progn
       (spacemacs/declare-prefix "gl" "links")
       (spacemacs/set-leader-keys
-        "gll" 'spacemacs/git-link
+        "glc" 'git-link-commit
+        "glC" 'spacemacs/git-link-commit-copy-url-only
+        "gll" 'git-link
         "glL" 'spacemacs/git-link-copy-url-only
-        "glc" 'spacemacs/git-link-commit
-        "glC" 'spacemacs/git-link-commit-copy-url-only)
+        "glp" 'spacemacs/git-permalink
+        "glP" 'spacemacs/git-permalink-copy-url-only)
+
       ;; default is to open the generated link
       (setq git-link-open-in-browser t))))
 
@@ -146,7 +151,7 @@
     (progn
       (push "magit: .*" spacemacs-useless-buffers-regexp)
       (push "magit-.*: .*"  spacemacs-useless-buffers-regexp)
-      (spacemacs|require 'magit)
+      (spacemacs|require-when-dumping 'magit)
       (setq magit-completing-read-function
             (if (configuration-layer/layer-used-p 'ivy)
                 'ivy-completing-read
@@ -159,9 +164,9 @@
       ;; key bindings
       (spacemacs/declare-prefix "gf" "file")
       (spacemacs/set-leader-keys
-        "gb"  'spacemacs/git-blame-micro-state
+        "gb"  'spacemacs/git-blame-transient-state/body
         "gc"  'magit-clone
-        "gff" 'magit-find-file
+        "gfF" 'magit-find-file
         "gfl" 'magit-log-buffer-file
         "gfd" 'magit-diff
         "gi"  'magit-init
@@ -170,26 +175,35 @@
         "gs"  'magit-status
         "gS"  'magit-stage-file
         "gU"  'magit-unstage-file)
-      ;; transient state
-      ;; TODO use transient state instead of old micro-state, IIRC we continue
-      ;; to use micro-state because of the re-entry keyword :on-enter which is
-      ;; not available in transient state
-      (spacemacs|define-micro-state git-blame
+      (spacemacs|define-transient-state git-blame
         :title "Git Blame Transient State"
-        :doc "
-Press [_b_] again to blame further in the history, [_q_] to go up or quit."
+        :hint-is-doc t
+        :dynamic-hint (spacemacs//git-blame-ts-hint)
         :on-enter (let (golden-ratio-mode)
                     (unless (bound-and-true-p magit-blame-mode)
                       (call-interactively 'magit-blame-addition)))
-        :foreign-keys run
         :bindings
+        ("?" spacemacs//git-blame-ts-toggle-hint)
+        ;; chunks
+        ("p" magit-blame-previous-chunk)
+        ("P" magit-blame-previous-chunk-same-commit)
+        ("n" magit-blame-next-chunk)
+        ("N" magit-blame-next-chunk-same-commit)
+        ("RET" magit-show-commit)
+        ;; commits
         ("b" magit-blame-addition)
-        ;; here we use the :exit keyword because we should exit the
-        ;; micro-state only if the magit-blame-quit effectively disable
-        ;; the magit-blame mode.
-        ("q" nil :exit (progn (when (bound-and-true-p magit-blame-mode)
-                                (magit-blame-quit))
-                              (not (bound-and-true-p magit-blame-mode))))))
+        ("r" magit-blame-removal)
+        ("f" magit-blame-reverse)
+        ("e" magit-blame-echo)
+        ;; q closes any open blame buffers, one at a time,
+        ;; closing the last blame buffer disables magit-blame-mode,
+        ;; pressing q in this state closes the git blame TS
+        ("q" magit-blame-quit :exit (not (bound-and-true-p magit-blame-mode)))
+        ;; other
+        ("c" magit-blame-cycle-style)
+        ("Y" magit-blame-copy-hash)
+        ("B" magit-blame :exit t)
+        ("Q" nil :exit t)))
     :config
     (progn
       ;; seems to be necessary at the time of release
@@ -197,25 +211,25 @@ Press [_b_] again to blame further in the history, [_q_] to go up or quit."
       ;; bind function keys
       ;; (define-key magit-mode-map (kbd "<tab>") 'magit-section-toggle)
       (evilified-state-evilify-map magit-repolist-mode-map
-          :mode magit-repolist-mode
-          :bindings
-          (kbd "gr") 'magit-list-repositories
-          (kbd "RET") 'magit-repolist-status)
+        :mode magit-repolist-mode
+        :bindings
+        (kbd "gr") 'magit-list-repositories
+        (kbd "RET") 'magit-repolist-status)
       ;; confirm/abort
       (when dotspacemacs-major-mode-leader-key
         (add-hook 'with-editor-mode-hook 'evil-normalize-keymaps)
         (let ((mm-key dotspacemacs-major-mode-leader-key))
           (dolist (state '(normal motion))
             (evil-define-key state with-editor-mode-map
-              (concat mm-key mm-key) 'with-editor-finish
-              (concat mm-key "a")    'with-editor-cancel
-              (concat mm-key "c")    'with-editor-finish
-              (concat mm-key "k")    'with-editor-cancel)
+              (concat (kbd mm-key) (kbd mm-key)) 'with-editor-finish
+              (concat (kbd mm-key) "a")    'with-editor-cancel
+              (concat (kbd mm-key) "c")    'with-editor-finish
+              (concat (kbd mm-key) "k")    'with-editor-cancel)
             (evil-define-key state magit-log-select-mode-map
-              (concat mm-key mm-key) 'magit-log-select-pick
-              (concat mm-key "a")    'magit-log-select-quit
-              (concat mm-key "c")    'magit-log-select-pick
-              (concat mm-key "k")    'magit-log-select-quit))))
+              (concat (kbd mm-key) (kbd mm-key)) 'magit-log-select-pick
+              (concat (kbd mm-key) "a")    'magit-log-select-quit
+              (concat (kbd mm-key) "c")    'magit-log-select-pick
+              (concat (kbd mm-key) "k")    'magit-log-select-quit))))
       ;; whitespace
       (define-key magit-status-mode-map (kbd "C-S-w")
         'spacemacs/magit-toggle-whitespace)
@@ -223,16 +237,34 @@ Press [_b_] again to blame further in the history, [_q_] to go up or quit."
       (when git-magit-status-fullscreen
         (setq magit-display-buffer-function
               'magit-display-buffer-fullframe-status-v1))
-      (spacemacs|hide-lighter with-editor-mode))))
+      (spacemacs|hide-lighter with-editor-mode)
+      ;; Workaround for #12747 - org-mode
+      (evil-define-key 'normal magit-blame-read-only-mode-map (kbd "RET") 'magit-show-commit)
+      ;; Make sure that M-m still switch windows in all magit buffers
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-1") 'winum-select-window-1)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-2") 'winum-select-window-2)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-3") 'winum-select-window-3)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-4") 'winum-select-window-4)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-5") 'winum-select-window-5)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-6") 'winum-select-window-6)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-7") 'winum-select-window-7)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-8") 'winum-select-window-8)
+      (evil-define-key 'normal magit-section-mode-map (kbd "M-9") 'winum-select-window-9))))
 
 (defun git/init-magit-gitflow ()
   (use-package magit-gitflow
     :defer t
-    :init (add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
+    :init (progn
+            (add-hook 'magit-mode-hook 'turn-on-magit-gitflow)
+            (setq magit-gitflow-popup-key "%"))
     :config
     (progn
       (spacemacs|diminish magit-gitflow-mode "Flow")
       (define-key magit-mode-map "%" 'magit-gitflow-popup))))
+
+(defun git/init-magit-section ()
+  (use-package magit-section
+    :defer t))
 
 (defun git/init-magit-svn ()
   (use-package magit-svn
@@ -246,6 +278,13 @@ Press [_b_] again to blame further in the history, [_q_] to go up or quit."
 (defun git/init-orgit ()
   (use-package orgit
     :defer t))
+
+(defun git/post-init-org ()
+  ;; unfold the org headings for a target line
+  (advice-add 'magit-blame-addition :after #'spacemacs/org-reveal-advice)
+  (advice-add 'magit-diff-visit-file :after #'spacemacs/org-reveal-advice)
+  (advice-add 'magit-diff-visit-worktree-file
+              :after #'spacemacs/org-reveal-advice))
 
 (defun git/init-smeargle ()
   (use-package smeargle

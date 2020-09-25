@@ -1,6 +1,6 @@
 ;;; packages.el --- Asm Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Tu, Do Hoang <tuhdo1710@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -29,7 +29,7 @@
     :config
     (progn
       ;; We need to insert a non-indented line, otherwise it's annoying
-      ;; everytime we insert a comment for a routine
+      ;; every time we insert a comment for a routine
       (define-key asm-mode-map (kbd "C-j") 'newline)
       (add-hook 'asm-mode-hook #'asm-generic-setup))))
 
@@ -48,7 +48,7 @@
     :config
     (progn
       ;; We need to insert a non-indented line, otherwise it's annoying
-      ;; everytime we insert a comment for a routine
+      ;; every time we insert a comment for a routine
       (define-key nasm-mode-map (kbd "C-j") 'newline)
       ;; we use the advised `asm-colon' because `nasm-colon indents the whole line, even
       ;; inside a comment

@@ -1,6 +1,6 @@
-;;; config.el --- treemacs Layer configuration File for Spacemacs
+;;; config.el --- Treemacs Layer configuration File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Alexander Miller <alexanderm@web.de>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -15,9 +15,11 @@
 (defvar treemacs-use-filewatch-mode t
   "When non-nil use `treemacs-filewatch-mode'.")
 
-(defvar treemacs-use-collapsed-directories (if (executable-find "python") 3 0)
-  "Number of directories to collapse with `treemacs-collapse-dirs'.
-Must be a number.")
+(defvar treemacs-use-scope-type 'Frames
+  "Determines the scope of treemacs buffers and workspaces.
+Possible values are:
+ - `Frames' - to scope treemacs to the current frame
+ - `Perspectives' - to scope treemacs in conjunction with `persp-mode'.")
 
 (defvar treemacs-use-git-mode
   (pcase (cons (not (null (executable-find "git")))
@@ -34,3 +36,9 @@ There are 2 possible values:
 
 (defvar treemacs-lock-width nil
   "When non-nil the treemacs window will not be manually resizable by default.")
+
+(defvar treemacs-use-icons-dired t
+  "When non-nil use `treemacs-icons-dired'")
+
+(defvar treemacs-use-all-the-icons-theme nil
+  "Enable the treemacs supported `all-the-icons' theme")

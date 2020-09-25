@@ -1,7 +1,7 @@
 ;;; packages.el --- PDF Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner
-;; Copyright (c) 2014-2016 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner
+;; Copyright (c) 2020-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: André Peric Tavares <andre.peric.tavares@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -21,7 +21,7 @@
       (pdf-tools-install)
 
       (spacemacs|define-transient-state pdf-tools
-        :title "PDF-tools transient state"
+        :title "PDF-tools Transient State"
         :on-enter (setq which-key-inhibit t)
         :on-exit (setq which-key-inhibit nil)
         :evil-leader-for-mode (pdf-view-mode . ".")
@@ -34,7 +34,7 @@
  [_d_/_u_] pg down/up          [_P_] fit to page              [_aD_] delete       [_p_] print
  [_J_/_K_] next/prev pg        [_m_] slice using mouse        [_am_] markup       [_o_] open link
  [_0_/_$_] full scroll l/r     [_b_] slice from bounding box  ^^                  [_r_] revert
- ^^^^                          [_R_] reset slice              ^^                  [_t_] attachments
+ [_[_/_]_] history back/for    [_R_] reset slice              ^^                  [_t_] attachments
  ^^^^                          [_zr_] reset zoom              ^^                  [_n_] night mode
  "
         :bindings
@@ -49,6 +49,8 @@
         ("d"  pdf-view-scroll-up-or-next-page)
         ("0"  image-bol)
         ("$"  image-eol)
+        ("["  pdf-history-backward)
+        ("]"  pdf-history-forward)
         ;; Scale/Fit
         ("W"  pdf-view-fit-width-to-window)
         ("H"  pdf-view-fit-height-to-window)
@@ -123,6 +125,9 @@
         (kbd "C-u") 'pdf-view-scroll-down-or-previous-page
         (kbd "C-d") 'pdf-view-scroll-up-or-next-page
         (kbd "``")  'pdf-history-backward
+        "["  'pdf-history-backward
+        "]"  'pdf-history-forward
+        "'" 'pdf-view-jump-to-register
         ;; Search
         "/" 'isearch-forward
         "?" 'isearch-backward

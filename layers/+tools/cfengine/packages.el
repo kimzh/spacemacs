@@ -1,6 +1,6 @@
 ;;; packages.el --- cfengine layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Nick Anderson <nick@cmdln.org>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -17,6 +17,7 @@
     flycheck
     (ob-cfengine3 :requires org)
     org
+    mustache-mode
     ))
 
 (defun cfengine/init-cfengine3-mode ()
@@ -43,3 +44,8 @@
   (when (configuration-layer/layer-used-p 'org)
     (spacemacs|use-package-add-hook org
       :post-config (add-to-list 'org-babel-load-languages '(cfengine3 . t)))))
+
+(defun cfengine/init-mustache-mode ()
+  (use-package mustache-mode
+    :init (add-to-list 'auto-mode-alist '("\\.mustache\\'" . mustache-mode))
+    :defer t))

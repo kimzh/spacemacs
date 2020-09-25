@@ -1,6 +1,6 @@
 ;;; funcs.el --- Ruby Layer functions File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -12,18 +12,32 @@
 
 ;; backend
 
+(defun spacemacs//ruby-backend ()
+  "Returns selected backend."
+  (if ruby-backend
+      ruby-backend
+    (cond
+     ((configuration-layer/layer-used-p 'lsp) 'lsp)
+     (t 'robe))))
+
 (defun spacemacs//ruby-setup-backend ()
   "Conditionally configure Ruby backend"
   (spacemacs//ruby-setup-version-manager)
-  (pcase ruby-backend
+  (pcase (spacemacs//ruby-backend)
     (`lsp (spacemacs//ruby-setup-lsp))
     (`robe (spacemacs//ruby-setup-robe))))
 
 (defun spacemacs//ruby-setup-company ()
   "Configure backend company"
-  (pcase ruby-backend
+  (pcase (spacemacs//ruby-backend)
     (`robe (spacemacs//ruby-setup-robe-company))
     (`lsp nil))) ;; Company is automatically set up by lsp
+
+(defun spacemacs//ruby-setup-dap ()
+  "Conditionally setup elixir DAP integration."
+  ;; currently DAP is only available using LSP
+  (pcase (spacemacs//ruby-backend)
+    (`lsp (spacemacs//ruby-setup-lsp-dap))))
 
 
 ;; lsp
@@ -32,12 +46,11 @@
   "Setup Ruby lsp."
   (if (configuration-layer/layer-used-p 'lsp)
       (lsp)
-    (message "`lsp' layer is not installed, please add `lsp' layer to your dotfile."))
-  (if (configuration-layer/layer-used-p 'dap)
-      (progn
-        (require 'dap-ruby)
-        (spacemacs/dap-bind-keys-for-mode 'ruby-mode))
-    (message "`dap' layer is not installed, please add `dap' layer to your dotfile.")))
+    (message "`lsp' layer is not installed, please add `lsp' layer to your dotfile.")))
+
+(defun spacemacs//ruby-setup-lsp-dap ()
+  "Setup DAP integration."
+  (require 'dap-ruby))
 
 
 ;; robe
@@ -124,3 +137,18 @@ Called interactively it prompts for a directory."
     (highlight-lines-matching-regexp "byebug")
     (highlight-lines-matching-regexp "binding.irb")
     (highlight-lines-matching-regexp "binding.pry")))
+
+
+;; Insert text
+
+(defun spacemacs/ruby-insert-frozen-string-literal-comment ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (insert "# frozen_string_literal: true\n")))
+
+(defun spacemacs/ruby-insert-shebang ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (insert "#!/usr/bin/env ruby\n")))

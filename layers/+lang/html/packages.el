@@ -1,6 +1,6 @@
 ;;; packages.el --- HTML Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -19,8 +19,7 @@
         evil-matchit
         flycheck
         haml-mode
-        (counsel-css :requires ivy
-                     :location (recipe :fetcher github :repo "hlissner/emacs-counsel-css"))
+        (counsel-css :requires ivy)
         (helm-css-scss :requires helm)
         impatient-mode
         less-css-mode
@@ -76,7 +75,7 @@
 
       (when css-enable-lsp
         (add-hook 'css-mode-hook
-                  #'spacemacs//setup-lsp-for-stylesheet-buffers t))
+                  #'spacemacs//setup-lsp-for-web-mode-buffers t))
 
       ;; Explicitly run prog-mode hooks since css-mode does not derive from
       ;; prog-mode major-mode in Emacs 24 and below.
@@ -101,10 +100,7 @@
                                                 web-mode-hook))
     :config
     (progn
-      (evil-define-key 'insert emmet-mode-keymap (kbd "TAB") 'spacemacs/emmet-expand)
-      (evil-define-key 'insert emmet-mode-keymap (kbd "<tab>") 'spacemacs/emmet-expand)
-      (evil-define-key 'hybrid emmet-mode-keymap (kbd "TAB") 'spacemacs/emmet-expand)
-      (evil-define-key 'hybrid emmet-mode-keymap (kbd "<tab>") 'spacemacs/emmet-expand)
+      (define-key emmet-mode-keymap (kbd "<C-return>") 'spacemacs/emmet-expand)
       (spacemacs|hide-lighter emmet-mode))))
 
 (defun html/post-init-evil-matchit ()
@@ -128,9 +124,9 @@
   (use-package counsel-css
     :defer t
     :init (cl-loop for (mode . mode-hook) in '((css-mode . css-mode-hook)
-                                            (scss-mode . scss-mode-hook))
-                do (add-hook mode-hook 'counsel-css-imenu-setup)
-                (spacemacs/set-leader-keys-for-major-mode mode "gh" 'counsel-css))))
+                                               (scss-mode . scss-mode-hook))
+                   do (add-hook mode-hook 'counsel-css-imenu-setup)
+                   (spacemacs/set-leader-keys-for-major-mode mode "gh" 'counsel-css))))
 
 (defun html/init-helm-css-scss ()
   (use-package helm-css-scss
@@ -153,7 +149,7 @@
     :init
     (when less-enable-lsp
       (add-hook 'less-css-mode-hook
-                #'spacemacs//setup-lsp-for-stylesheet-buffers t))
+                #'spacemacs//setup-lsp-for-web-mode-buffers t))
     :mode ("\\.less\\'" . less-css-mode)))
 
 (defun html/pre-init-prettier-js ()
@@ -176,7 +172,7 @@
     :defer t
     :init
     (when scss-enable-lsp
-      (add-hook 'scss-mode-hook #'spacemacs//setup-lsp-for-stylesheet-buffers t))
+      (add-hook 'scss-mode-hook #'spacemacs//setup-lsp-for-web-mode-buffers t))
     :mode ("\\.scss\\'" . scss-mode)))
 
 (defun html/init-slim-mode ()
@@ -204,6 +200,11 @@
 (defun html/init-web-mode ()
   (use-package web-mode
     :defer t
+    :init
+    (progn
+      (spacemacs//web-setup-transient-state)
+      (when html-enable-lsp
+        (add-hook 'web-mode-hook #'spacemacs//setup-lsp-for-html-buffer t)))
     :config
     (progn
       (spacemacs/declare-prefix-for-mode 'web-mode "m=" "format")
@@ -225,49 +226,7 @@
         "rw" 'web-mode-element-wrap
         "z" 'web-mode-fold-or-unfold
         ;; TODO element close would be nice but broken with evil.
-        )
-
-      ;; (defvar spacemacs--web-mode-ms-doc-toggle 0
-      ;;   "Display a short doc when nil, full doc otherwise.")
-
-  ;;     (defun spacemacs//web-mode-ms-doc ()
-  ;;       (if (equal 0 spacemacs--web-mode-ms-doc-toggle)
-  ;;           "[_?_] for help"
-  ;;         "
-  ;; [_?_] display this help
-  ;; [_k_] previous [_j_] next   [_K_] previous sibling [_J_] next sibling
-  ;; [_h_] parent   [_l_] child  [_c_] clone [_d_] delete [_D_] kill [_r_] rename
-  ;; [_w_] wrap     [_p_] xpath
-  ;; [_q_] quit"))
-
-  ;;     (defun spacemacs//web-mode-ms-toggle-doc ()
-  ;;       (interactive)
-  ;;       (setq spacemacs--web-mode-ms-doc-toggle
-  ;;             (logxor spacemacs--web-mode-ms-doc-toggle 1)))
-
-      (spacemacs|define-transient-state web-mode
-        :title "Web-mode Transient State"
-        :columns 4
-        :foreign-keys run
-        :evil-leader-for-mode (web-mode . ".")
-        :bindings
-        ("j" web-mode-element-next "next")
-        ("J" web-mode-element-sibling-next "next sibling")
-        ("gj" web-mode-element-sibling-next)
-        ("k" web-mode-element-previous "previous")
-        ("K" web-mode-element-sibling-previous "previous sibling")
-        ("gk" web-mode-element-sibling-previous)
-        ("h" web-mode-element-parent "parent")
-        ("l" web-mode-element-child "child")
-        ("c" web-mode-element-clone "clone")
-        ("d" web-mode-element-vanish "delete")
-        ("D" web-mode-element-kill "kill")
-        ("r" web-mode-element-rename "rename" :exit t)
-        ("w" web-mode-element-wrap "wrap")
-        ("p" web-mode-dom-xpath "xpath")
-        ("q" nil "quit" :exit t)
-        ("<escape>" nil nil :exit t)))
-
+        ))
     :mode
     (("\\.phtml\\'"      . web-mode)
      ("\\.tpl\\.php\\'"  . web-mode)
@@ -284,6 +243,8 @@
      ("\\.hbs\\'"        . web-mode)
      ("\\.eco\\'"        . web-mode)
      ("\\.ejs\\'"        . web-mode)
+     ("\\.svelte\\'"     . web-mode)
+     ("\\.ctp\\'"        . web-mode)
      ("\\.djhtml\\'"     . web-mode))))
 
 (defun html/post-init-yasnippet ()

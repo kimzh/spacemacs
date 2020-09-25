@@ -1,6 +1,6 @@
 ;;; packages.el --- geolocation configuration File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Uri Sharf <uri.sharf@me.com>
 ;; URL: https://github.com/usharf/spacemacs
@@ -57,9 +57,10 @@ to not have to set these variables manually when enabling this layer."
     :commands (sunshine-forecast sunshine-quick-forecast)
     :init
     (progn
+      (spacemacs/declare-prefix "atg" "geolocation")
       (spacemacs/set-leader-keys
-        "aw" 'sunshine-forecast
-        "aW" 'sunshine-quick-forecast))
+        "atgw" 'sunshine-forecast
+        "atgW" 'sunshine-quick-forecast))
     :config
     (progn
       (evilified-state-evilify-map sunshine-mode-map
@@ -68,7 +69,7 @@ to not have to set these variables manually when enabling this layer."
         (kbd "q") 'quit-window
         (kbd "i") 'sunshine-toggle-icons)
 
-      ;; just in case location was not set by user, or on OS X,
+      ;; just in case location was not set by user, or on macOS,
       ;; if wasn't set up automatically, will not work with Emacs'
       ;; default for `calendar-location-name'
       (unless (boundp 'sunshine-location)
@@ -83,7 +84,9 @@ to not have to set these variables manually when enabling this layer."
     (progn
       (spacemacs/defer-until-after-user-config #'geolocation//activate-theme-changer))))
 
-(defun geolocation/post-init-popwin ()
-  ;; Pin the weather forecast to the bottom window
-  (push '("*Sunshine*" :dedicated t :position bottom)
-        popwin:special-display-config))
+(defun geolocation/pre-init-popwin ()
+  "Pin the weather forecast to the bottom window"
+  (spacemacs|use-package-add-hook popwin
+    :post-config
+    (push '("*Sunshine*" :dedicated t :position bottom)
+          popwin:special-display-config)))

@@ -8,14 +8,19 @@
 - [[#description][Description]]
   - [[#features][Features:]]
 - [[#install][Install]]
+  - [[#error-checking--linting][Error checking / linting]]
   - [[#web-beautify][web-beautify]]
   - [[#prettier][prettier]]
   - [[#import-js][import-js]]
   - [[#choosing-a-backend][Choosing a backend]]
   - [[#choosing-a-formatter][Choosing a formatter]]
+  - [[#format-buffer-before-saving][Format buffer before saving]]
 - [[#backends][Backends]]
   - [[#tern][Tern]]
+  - [[#tide][Tide]]
   - [[#language-server-protocol][Language Server Protocol]]
+    - [[#typescript][TypeScript]]
+    - [[#flow][Flow]]
     - [[#debugger-dap-integration][Debugger (dap integration)]]
 - [[#configuration][Configuration]]
   - [[#indentation][Indentation]]
@@ -25,6 +30,7 @@
   - [[#node][Node]]
     - [[#node-modules][Node Modules]]
     - [[#node-externs][Node Externs]]
+  - [[#flowtypescript][Flow/Typescript]]
 - [[#key-bindings][Key bindings]]
   - [[#js2-mode][js2-mode]]
   - [[#folding-js2-mode][Folding (js2-mode)]]
@@ -45,32 +51,39 @@ This layer adds support for the JavaScript language using [[https://github.com/m
 - Auto-completion and documentation
 - Browser based REPL available via [[https://github.com/skeeto/skewer-mode][skewer-mode]] and [[https://github.com/pandeiro/livid-mode][livid-mode]]
 - Server based REPL with [[https://github.com/abicky/nodejs-repl.el][nodejs-repl]]
-- Formatting with [[https://github.com/yasuyk/web-beautify][web-beautify]]
+- Formatting with [[https://github.com/yasuyk/web-beautify][web-beautify]] or [[https://github.com/prettier/prettier][prettier]]
+- Interactive debugger using [[https://github.com/emacs-lsp/dap-mode][dap-mode]]
+- Display Flow & Typescript type information
 
 * Install
 To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =javascript= to the existing =dotspacemacs-configuration-layers= list in
 this file.
 
-To enable the importing helper, install the =ImportJS=:
-
-#+BEGIN_SRC sh
-  $ npm install -g import-js
-#+END_SRC
-
-To activate error checking using flycheck, install one of the [[http://www.flycheck.org/en/latest/languages.html#javascript][available linters]]
-such as =ESLint= or =JSHint=:
+** Error checking / linting
+To activate error checking / linting using flycheck, install on your system one of the [[http://www.flycheck.org/en/latest/languages.html#javascript][available linters]]
+such as =ESLint=, =JSHint= or =StandardJS=:
 
 #+BEGIN_SRC sh
   $ npm install -g eslint
   # or
   $ npm install -g jshint
+  # or
+  $ npm install -g standard
 #+END_SRC
 
-If you install these in non-standard locations, then add the following to your =dotspacemacs/user-init= function:
+If you install these in non-standard locations, add the following to your
+=dotspacemacs/user-init= function:
 
 #+BEGIN_SRC elisp
   (add-to-list 'exec-path "/path/to/node/bins" t)
+#+END_SRC
+
+Finally, you will want to turn off js2-mode warnings, since they might be
+in conflict with the linter you are using via flycheck:
+
+#+BEGIN_SRC elisp
+  (javascript :variables js2-mode-show-strict-warnings nil)
 #+END_SRC
 
 ** web-beautify
@@ -81,6 +94,12 @@ See [[file:../../+tools/prettier/README.org][prettier layer]] documentation.
 
 ** import-js
 See [[file:../../+tools/import-js/README.org][import-js layer]] documentation.
+
+Install =ImportJS= on your system:
+
+#+BEGIN_SRC sh
+  $ npm install -g import-js
+#+END_SRC
 
 To enable it, set the layer variable =javascript-import-tool=:
 
@@ -94,6 +113,9 @@ To choose a default backend set the layer variable =javascript-backend=:
 #+BEGIN_SRC elisp
   (javascript :variables javascript-backend 'tern)
 #+END_SRC
+
+Alternatively the =lsp= backend will be automatically chosen if the layer =lsp=
+is used and you did not specify any value for =javascript-backend=.
 
 Backend can be chosen on a per project basis using directory local variables
 (files named =.dir-locals.el= at the root of a project), an example to use the
@@ -122,9 +144,9 @@ To choose a formatter, set the layer variable =javascript-fmt-tool=:
   (javascript :variables javascript-fmt-tool 'web-beautify)
 #+END_SRC
 
-Formatter can be chosen on a per project basis using directory local variables
-(files named =.dir-locals.el= at the root of a project), an example to use the
-=prettier= formatter:
+The formatter can be chosen on a per project basis using directory local
+variables (files named =.dir-locals.el= at the root of a project). For example
+to use the =prettier= formatter:
 
 #+BEGIN_SRC elisp
   ;;; Directory Local Variables
@@ -145,12 +167,31 @@ You can choose formatting tool:
 
 Default is =’web-beautify=.
 
+** Format buffer before saving
+#+BEGIN_SRC elisp
+  (javascript :variables javascript-fmt-on-save t)
+#+END_SRC
+
 * Backends
 ** Tern
 See [[file:../../+tools/tern/README.org][tern layer]] documentation.
 
+** Tide
+See [[file:../../+tools/tide/README.org][tide layer]] documentation.
+
 ** Language Server Protocol
-You have to install =typescript-language-server= (recommended) or =javascript-typescript-langserver= language server packages via
+To use an LSP server with JavaScript, add it as a =javascript-backend= to your
+=~/.spacemacs=.
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default dotspacemacs-configuration-layers
+                '((javascript :variables
+                              javascript-backend 'lsp)))
+#+END_SRC
+
+*** TypeScript
+You have to install =typescript-language-server= (recommended) or
+=javascript-typescript-langserver= language server packages via
 
 #+BEGIN_SRC sh
   npm i -g typescript typescript-language-server
@@ -162,8 +203,22 @@ or
   npm i -g typescript javascript-typescript-langserver
 #+END_SRC
 
+*** Flow
+You have to install =flow-bin=.
+
+#+BEGIN_SRC sh
+  npm i -g flow-bin
+#+END_SRC
+
+Or, if you'd rather use a locally-installed =flow-bin= from your project's
+node_modules directory, see the [[#node-modules][node-add-modules-path setting]].
+
 *** Debugger (dap integration)
-To install the debug adapter you may run =M-x dap-firefox-setup= or =M-x dap-firefox-setup= if you are using Linux or download it manually from [[https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-firefox-debug][Firefox Debug Adapter]] or [[https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome][Chrome Debug Adapter]] and adjust =dap-firefox-debug-path= or =dap-chrome-debug-path=. For usage instructions refer to [[https://github.com/emacs-lsp/dap-mode][dap-mode]] readme.
+To install the debug adapter you may run =M-x dap-firefox-setup= or
+=M-x dap-chrome-setup= if you are using Linux or download it manually from
+[[https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-firefox-debug][Firefox Debug Adapter]] or [[https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome][Chrome Debug Adapter]] and adjust
+=dap-firefox-debug-path= or =dap-chrome-debug-path=. For usage instructions
+refer to [[https://github.com/emacs-lsp/dap-mode][dap-mode]] readme.
 
 * Configuration
 ** Indentation
@@ -238,6 +293,18 @@ variable to =t= in the =javascript= config section:
 #+BEGIN_SRC elisp
   (setq-default dotspacemacs-configuration-layers
     '((javascript :variables js2-include-node-externs t)))
+#+END_SRC
+
+** Flow/Typescript
+Enable the [[#language-server-protocol][lsp]] backend to view type information, jump to declarations, and more.
+
+js2-mode is sometimes confused by the type syntax, so you may wish to disable their
+parse warnings:
+
+#+BEGIN_SRC emacs-lisp
+  (javascript :variables javascript-backend 'lsp
+              js2-mode-show-strict-warnings nil
+              js2-mode-show-parse-errors nil)
 #+END_SRC
 
 * Key bindings
@@ -348,48 +415,5 @@ You can check more [[https://github.com/mooz/js-doc/][here]]
 | ~SPC m s s~ | switch to REPL                                                     |
 
 ** debugger (dap mode)
-
-| Key binding   | Description                     |
-|---------------+---------------------------------|
-| ~SPC m d d d~ | start debugging                 |
-| ~SPC m d d l~ | debug last configuration        |
-| ~SPC m d d r~ | debug recent configuration      |
-|---------------+---------------------------------|
-| ~SPC m d c~   | continue                        |
-| ~SPC m d i~   | step in                         |
-| ~SPC m d o~   | step out                        |
-| ~SPC m d s~   | next step                       |
-| ~SPC m d v~   | inspect value at point          |
-| ~SPC m d r~   | restart frame                   |
-|---------------+---------------------------------|
-| ~SPC m d .~   | debug transient state           |
-|---------------+---------------------------------|
-| ~SPC m d a~   | abandon current session         |
-| ~SPC m d A~   | abandon all process             |
-|---------------+---------------------------------|
-| ~SPC m d e e~ | eval                            |
-| ~SPC m d e r~ | eval region                     |
-| ~SPC m d e t~ | eval value at point             |
-|---------------+---------------------------------|
-| ~SPC m d S s~ | switch session                  |
-| ~SPC m d S t~ | switch thread                   |
-| ~SPC m d S f~ | switch frame                    |
-|---------------+---------------------------------|
-| ~SPC m d I i~ | inspect                         |
-| ~SPC m d I r~ | inspect region                  |
-| ~SPC m d I t~ | inspect value at point          |
-|---------------+---------------------------------|
-| ~SPC m d b b~ | toggle a breakpoint             |
-| ~SPC m d b c~ | change breakpoint condition     |
-| ~SPC m d b l~ | change breakpoint log condition |
-| ~SPC m d b h~ | change breakpoint hit count     |
-| ~SPC m d b a~ | add a breakpoint                |
-| ~SPC m d b d~ | delete a breakpoint             |
-| ~SPC m d b D~ | clear all breakpoints           |
-|---------------+---------------------------------|
-| ~SPC m d '_~  | Run debug REPL                  |
-|---------------+---------------------------------|
-| ~SPC m d w l~ | list local variables            |
-| ~SPC m d w o~ | goto output buffer if present   |
-| ~SPC m d w s~ | list sessions                   |
-| ~SPC m d w b~ | list breakpoints                |
+Using the =dap= layer you'll get access to all the DAP key bindings, see the
+complete list of key bindings on the [[https://github.com/syl20bnr/spacemacs/tree/develop/layers/%2Btools/dap#key-bindings][dap layer description]].

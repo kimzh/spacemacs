@@ -1,6 +1,6 @@
 ;;; core-dotspacemacs.el --- Spacemacs Core File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -66,17 +66,24 @@ EXPERIMENTAL.org at to root of the git repository.")
 (defvar dotspacemacs-emacs-pdumper-executable-file "emacs"
   "File path pointing to emacs 27 or later executable.")
 
-(defvar dotspacemacs-emacs-dumper-dump-file "spacemacs.pdmp"
+(defvar dotspacemacs-emacs-dumper-dump-file
+  (format "spacemacs-%s.pdmp" emacs-version)
   "Name of the Spacemacs dump file. This is the file will be created by the
 portable dumper in the cache directory under dumps sub-directory.
 To load it when starting Emacs add the parameter `--dump-file'
 when invoking Emacs 27.1 executable on the command line, for instance:
-./emacs --dump-file=/Users/sylvain/.emacs.d/.cache/dumps/spacemacs.pdmp")
+./emacs --dump-file=$HOME/.emacs.d/.cache/dumps/spacemacs-27.1.pdmp")
 
 (defvar dotspacemacs-gc-cons '(100000000 0.1)
   "Set `gc-cons-threshold' and `gc-cons-percentage' when startup finishes.
 This is an advanced option and should not be changed unless you suspect
 performance issues due to garbage collection operations.")
+
+(defvar dotspacemacs-read-process-output-max (* 1024 1024)
+  "Set `read-process-output-max' when startup finishes.
+This defines how much data is read from a foreign process.
+Setting this >= 1 MB should increase performance for lsp servers
+in emacs 27.")
 
 (defvar dotspacemacs-elpa-https t
   "If non nil ELPA repositories are contacted via HTTPS whenever it's
@@ -89,7 +96,8 @@ environment, otherwise it is strongly recommended to let it set to t.")
 (defvar dotspacemacs-use-spacelpa nil
   "If non-nil then Spacelpa repository is the primary source to install
 a locked version of packages. If nil then Spacemacs will install the latest
-version of packages from MELPA.")
+version of packages from MELPA. Spacelpa is currently in experimental
+state and should only be used for testing.")
 
 (defvar dotspacemacs-verify-spacelpa-archives nil
   "If non-nil then verify the signature for downloaded Spacelpa archives.")
@@ -149,6 +157,10 @@ banner, `random' chooses a random text banner in `core/banners'
 directory. A string value must be a path to a .PNG file.
 If the value is nil then no banner is displayed.")
 
+(defvar dotspacemacs-startup-buffer-show-version t
+  "If bound, show Spacemacs and Emacs version at the top right of the
+Spacemacs buffer.")
+
 (defvar dotspacemacs-scratch-mode 'text-mode
   "Default major mode of the scratch buffer.")
 
@@ -205,7 +217,7 @@ original format spec, and additional customizations.")
   "Major mode leader key is a shortcut key which is the equivalent of
 pressing `<leader> m`. Set it to `nil` to disable it.")
 
-(defvar dotspacemacs-major-mode-emacs-leader-key "C-M-m"
+(defvar dotspacemacs-major-mode-emacs-leader-key (if window-system "<M-return>" "C-M-m")
   "Major mode leader key accessible in `emacs state' and `insert state'")
 
 (defvar dotspacemacs-ex-command-key ":"
@@ -298,7 +310,7 @@ to boost the loading time.")
 
 (defvar dotspacemacs-fullscreen-use-non-native nil
   "If non nil `spacemacs/toggle-fullscreen' will not use native fullscreen. Use
-to disable fullscreen animations in OSX.")
+to disable fullscreen animations on macOS.")
 
 (defvar dotspacemacs-maximized-at-startup nil
   "If non nil the frame is maximized when Emacs starts up (Emacs 24.4+ only).
@@ -418,15 +430,44 @@ visiting README.org files of Spacemacs.")
 (defvar dotspacemacs-new-empty-buffer-major-mode nil
   "Set the major mode for a new empty buffer.")
 
+(defvar dotspacemacs-use-clean-aindent-mode t
+  "Correct indentation for simple modes.
+
+If non nil activate `clean-aindent-mode' which tries to correct
+virtual indentation of simple modes. This can interfer with mode specific
+indent handling like has been reported for `go-mode'.
+If it does deactivate it here. (default t)")
+
+(defvar dotspacemacs-swap-number-row nil
+  "Shift number row for easier access.
+
+If non-nil shift your number row to match the entered keyboard layout
+(only in insert mode). Currently the keyboard layouts
+(qwerty-us qwertz-de) are supported.
+New layouts can be added in `spacemacs-editing' layer.
+(default nil)")
+
+(defvar dotspacemacs-home-shorten-agenda-source nil
+  "If nil the home buffer shows the full path of agenda items
+and todos. If non nil only the file name is shown.")
+
+(defvar dotspacemacs--pretty-ignore-subdirs
+  '(".cache/junk")
+  "Subdirectories of `spacemacs-start-directory' to ignore when
+prettifying Org files.")
+
 (defun dotspacemacs//prettify-spacemacs-docs ()
   "Run `spacemacs/prettify-org-buffer' if `buffer-file-name'
-has `spacemacs-start-directory'"
+looks like Spacemacs documentation."
   (when (and dotspacemacs-pretty-docs
              spacemacs-start-directory
-             buffer-file-name
-             (string-prefix-p (expand-file-name spacemacs-start-directory)
-                              (expand-file-name buffer-file-name)))
-    (spacemacs/prettify-org-buffer)))
+             buffer-file-name)
+    (let ((start-dir (expand-file-name spacemacs-start-directory))
+          (buf-path (expand-file-name buffer-file-name)))
+      (when (and (string-prefix-p start-dir buf-path)
+                 (not (--any? (string-prefix-p (expand-file-name it start-dir) buf-path)
+                              dotspacemacs--pretty-ignore-subdirs)))
+        (spacemacs/prettify-org-buffer)))))
 
 ;; only for backward compatibility
 (defalias 'dotspacemacs-mode 'emacs-lisp-mode)
@@ -477,7 +518,7 @@ changed, and issue a warning if it did."
   "Read editing style CONFIG: apply variables and return the editing style.
 CONFIG can be the symbol of an editing style or a list where the car is
 the symbol of an editing style and the cdr is a list of keyword arguments like
-`:variables'."
+  `:variables'."
   (cond
    ((symbolp config) config)
    ((listp config)
@@ -800,7 +841,7 @@ error recovery."
                           "exists in filesystem" "path")
     (setq dotspacemacs-configuration-layers
           (mapcar (lambda (l) (if (listp l) (car l) l))
-                  dotspacemacs-configuration-layers))
+                  (remove nil dotspacemacs-configuration-layers)))
     (spacemacs//test-list 'configuration-layer/get-layer-path
                           'dotspacemacs-configuration-layers
                           "can be found" "layer")

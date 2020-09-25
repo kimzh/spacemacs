@@ -1,6 +1,6 @@
 ;;; config.el --- Spacemacs Defaults Layer configuration File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -81,9 +81,9 @@ It runs `tabulated-list-revert-hook', then calls `tabulated-list-print'."
 ;; Text
 (setq longlines-show-hard-newlines t)
 
-;; Use system trash for file deletion
-;; should work on Windows and Linux distros
-;; on OS X, see contrib/osx layer
+;; Use system trash for file deletion.
+;; This should work on Windows and Linux distros.
+;; For macOS, see the osx layer.
 (setq delete-by-moving-to-trash t)
 
 ;; auto fill breaks line beyond buffer's fill-column

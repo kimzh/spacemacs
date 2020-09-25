@@ -1,6 +1,6 @@
 ;;; packages.el --- Source Control Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -12,24 +12,24 @@
 (setq version-control-packages
       '(
         browse-at-remote
-        (vc :location built-in)
+        (diff-hl            :toggle (eq 'diff-hl version-control-diff-tool))
         diff-mode
-        diff-hl
         evil-unimpaired
-        git-gutter
-        git-gutter+
-        git-gutter-fringe
-        git-gutter-fringe+
+        (git-gutter         :toggle (eq 'git-gutter version-control-diff-tool))
+        (git-gutter-fringe  :toggle (eq 'git-gutter version-control-diff-tool))
+        (git-gutter+        :toggle (eq 'git-gutter+ version-control-diff-tool))
+        (git-gutter-fringe+ :toggle (eq 'git-gutter+ version-control-diff-tool))
         (smerge-mode :location built-in)
+        (vc :location built-in)
         ))
 
 (defun version-control/init-vc ()
   (use-package vc
     :defer t
+    :commands (vc-ignore)
     :init
-    (spacemacs/declare-prefix "gv" "version-control")
-    :config
     (progn
+      (spacemacs/declare-prefix "gv" "version-control")
       (spacemacs/set-leader-keys
         "gvv" 'vc-next-action
         "gvg" 'vc-annotate
@@ -38,12 +38,13 @@
         "gvd" 'vc-dir
         "gv+" 'vc-update
         "gvi" 'vc-register
+        "gvI" 'vc-ignore
         "gvu" 'vc-revert
         "gvl" 'vc-print-log
         "gvL" 'vc-print-root-log
-        "gvI" 'vc-ignore
-        "gvr" 'vc-resolve-conflicts)
-
+        "gvr" 'vc-resolve-conflicts))
+    :config
+    (progn
       (evilified-state-evilify vc-dir-mode vc-dir-mode-map
         "j" 'vc-dir-next-line
         (kbd "M-n") 'vc-dir-next-line
@@ -121,7 +122,6 @@
 
 (defun version-control/init-diff-hl ()
   (use-package diff-hl
-    :if (eq version-control-diff-tool 'diff-hl)
     :defer t
     :init
     (progn
@@ -143,7 +143,6 @@
 
 (defun version-control/init-git-gutter ()
   (use-package git-gutter
-    :if (eq version-control-diff-tool 'git-gutter)
     :defer t
     :init
     (progn
@@ -165,7 +164,6 @@
 
 (defun version-control/init-git-gutter-fringe ()
   (use-package git-gutter-fringe
-    :if (eq version-control-diff-tool 'git-gutter)
     :defer t
     :init
     (progn
@@ -207,7 +205,8 @@
     (progn
       ;; If you enable global minor mode
       (when version-control-global-margin
-        (add-hook 'magit-pre-refresh-hook 'git-gutter+-refresh)
+        (add-hook 'magit-pre-refresh-hook
+                  #'spacemacs//git-gutter+-refresh-in-all-buffers)
         (run-with-idle-timer 1 nil 'global-git-gutter+-mode))
       (setq
        git-gutter+-modified-sign " "
@@ -222,7 +221,6 @@
 
 (defun version-control/init-git-gutter-fringe+ ()
   (use-package git-gutter-fringe+
-    :if (eq version-control-diff-tool 'git-gutter+)
     :defer t
     :init
     (progn
@@ -263,21 +261,24 @@
     :diminish smerge-mode
     :commands spacemacs/smerge-transient-state/body
     :init
-    (spacemacs/set-leader-keys
-      "gr" 'spacemacs/smerge-transient-state/body)
-    :config
     (progn
-      (spacemacs|define-transient-state smerge
-        :title "Smerge Transient State"
-        :doc "
+      (spacemacs/set-leader-keys
+        "gr" 'spacemacs/smerge-transient-state/body)
+      (spacemacs|transient-state-format-hint smerge
+        spacemacs--smerge-ts-full-hint
+        "\n
  Movement^^^^         Merge Action^^      Diff^^            Other
  ---------------^^^^  ----------------^^  --------------^^  ---------------------------^^
  [_n_]^^   next hunk  [_b_] keep base     [_<_] base/mine   [_C_] combine curr/next hunks
  [_N_/_p_] prev hunk  [_m_] keep mine     [_=_] mine/other  [_u_] undo
  [_j_]^^   next line  [_a_] keep all      [_>_] base/other  [_q_] quit
  [_k_]^^   prev line  [_o_] keep other    [_r_] refine
- ^^^^                 [_c_] keep current  [_e_] ediff
- ^^^^                 [_K_] kill current"
+ ^^^^                 [_c_] keep current  [_e_] ediff       [_?_]^^ toggle help
+ ^^^^                 [_K_] kill current")
+      (spacemacs|define-transient-state smerge
+        :title "Smerge Transient State"
+        :hint-is-doc t
+        :dynamic-hint (spacemacs//smerge-ts-hint)
         :bindings
         ;; move
         ("n" smerge-next)
@@ -301,9 +302,10 @@
         ("C" smerge-combine-with-next)
         ("K" smerge-kill-current)
         ("u" undo-tree-undo)
-        ("q" nil :exit t)))))
+        ("q" nil :exit t)
+        ("?" spacemacs//smerge-ts-toggle-hint)))))
 
 (defun version-control/init-browse-at-remote ()
   (use-package browse-at-remote
     :defer t
-    :init (spacemacs/set-leader-keys "gho" 'browse-at-remote)))
+    :init (spacemacs/set-leader-keys "go" 'browse-at-remote)))

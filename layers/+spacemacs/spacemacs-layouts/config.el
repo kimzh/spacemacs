@@ -1,6 +1,6 @@
 ;;; config.el --- Spacemacs Layouts Layer configuration File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -21,8 +21,11 @@
 (defvar layouts-autosave-delay 900
   "Delay in seconds between each layouts auto-save.")
 
-(defvar spacemacs--ts-full-hint-toggle 0
-  "Toggle display of transient states documentations.")
+(defvar spacemacs--layouts-ts-full-hint-toggle nil
+  "Toggle display of layouts transient-state documentation.")
+
+(defvar spacemacs--workspaces-ts-full-hint-toggle nil
+  "Toggle display of workspaces transient-state documentation.")
 
 (defvar spacemacs--last-selected-layout dotspacemacs-default-layout-name
   "Previously selected layout.")
@@ -63,3 +66,12 @@ in case none of the regular names can be used for a new layout.")
 
 (defvar spacemacs-layouts-restrict-spc-tab nil
   "If `t' then `SPC-TAB' will be limited to the current layout's buffers.")
+
+(defvar layouts-enable-local-variables t
+  "Allow variables to be specified as layout-local (value local to a particular layout).")
+
+(defvar spacemacs--layout-local-variables nil
+  "List of variables that will be local to the current layout.")
+
+(defvar spacemacs--layout-local-map (ht-create)
+  "Map of layouts to their local variable values.")

@@ -1,6 +1,6 @@
 ;;; funcs.el --- Colors Layer functions File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -36,40 +36,29 @@
                   magit-diff-section-arguments)))
   (magit-refresh))
 
+(defun spacemacs/git-permalink ()
+  "Allow the user to get a permalink via git-link in a git-timemachine buffer."
+  (interactive)
+  (let ((git-link-use-commit t))
+    (call-interactively 'git-link-commit)))
+
+(defun spacemacs/git-permalink-copy-url-only ()
+  "Allow the user to get a permalink via git-link in a git-timemachine buffer."
+  (interactive)
+  (let (git-link-open-in-browser
+        (git-link-use-commit t))
+    (call-interactively 'git-link-commit)))
+
 (defun spacemacs/git-link-copy-url-only ()
   "Only copy the generated link to the kill ring."
   (interactive)
   (let (git-link-open-in-browser)
-    (call-interactively 'spacemacs/git-link)))
+    (call-interactively 'git-link)))
 
 (defun spacemacs/git-link-commit-copy-url-only ()
   "Only copy the generated link to the kill ring."
   (interactive)
   (let (git-link-open-in-browser)
-    (call-interactively 'spacemacs/git-link-commit)))
-
-(defun spacemacs/git-link ()
-  "Allow the user to run git-link in a git-timemachine buffer."
-  (interactive)
-  (require 'git-link)
-  (if (and (boundp 'git-timemachine-revision)
-           git-timemachine-revision)
-      (cl-letf (((symbol-function 'git-link--branch)
-                 (lambda ()
-                   (car git-timemachine-revision))))
-        (call-interactively 'git-link))
-    (call-interactively 'git-link)))
-
-(defun spacemacs/git-link-commit ()
-  "Allow the user to run git-link-commit in a git-timemachine buffer."
-  (interactive)
-  (require 'git-link)
-  (if (and (boundp 'git-timemachine-revision)
-           git-timemachine-revision)
-      (cl-letf (((symbol-function 'word-at-point)
-                 (lambda ()
-                   (car git-timemachine-revision))))
-        (call-interactively 'git-link-commit))
     (call-interactively 'git-link-commit)))
 
 
@@ -87,3 +76,35 @@
    (t
     (when (featurep 'evil-magit)
       (evil-magit-revert)))))
+
+
+;; git blame transient state
+
+(defun spacemacs//git-blame-ts-toggle-hint ()
+  "Toggle the full hint docstring for the git blame transient state."
+  (interactive)
+  (setq spacemacs--git-blame-ts-full-hint-toggle
+        (not spacemacs--git-blame-ts-full-hint-toggle)))
+
+(defun spacemacs//git-blame-ts-hint ()
+  "Return a condensed/full hint for the git-blame transient state"
+  (concat
+   " "
+   (if spacemacs--git-blame-ts-full-hint-toggle
+       spacemacs--git-blame-ts-full-hint
+     (concat "[" (propertize "?" 'face 'hydra-face-red) "] help"
+             spacemacs--git-blame-ts-minified-hint))))
+
+(spacemacs|transient-state-format-hint git-blame
+  spacemacs--git-blame-ts-minified-hint "\n
+Chunks: _n_ _N_ _p_ _P_ _RET_ Commits: _b_ _r_ _f_ _e_ _q_")
+
+(spacemacs|transient-state-format-hint git-blame
+  spacemacs--git-blame-ts-full-hint
+  (format "\n[_?_] toggle help
+Chunks^^^^                   Commits^^                     Other
+[_p_/_P_] prev /same commit  [_b_] adding lines            [_c_] cycle style
+[_n_/_N_] next /same commit  [_r_] removing lines          [_Y_] copy hash
+[_RET_]^^ show commit        [_f_] last commit with lines  [_B_] magit-blame
+^^^^                         [_e_] echo                    [_Q_] quit TS
+^^^^                         [_q_] quit blaming"))

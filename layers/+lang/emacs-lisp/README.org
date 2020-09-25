@@ -19,6 +19,7 @@
   - [[#additional-evaluation-functions][Additional evaluation functions]]
   - [[#format-code][Format code]]
   - [[#debugging][Debugging]]
+  - [[#refactoring-with-emr][Refactoring with emr]]
 
 * Description
 This layer gathers all the configuration related to emacs-lisp. This should
@@ -207,7 +208,7 @@ The [[https://github.com/syl20bnr/spacemacs/blob/develop/layers/%2Bemacs/semanti
 | Key binding | Description             |
 |-------------+-------------------------|
 | ~SPC m = b~ | format current buffer   |
-| ~SPC m = f~ | format current function |
+| ~SPC m = d~ | format current function |
 | ~SPC m = o~ | format all on one line  |
 | ~SPC m = s~ | format current sexp     |
 
@@ -223,9 +224,69 @@ To start debugging:
 In =edebug-mode= (=*Debugging*= is displayed in the minor modes segment of the
 mode line)
 
-TODO
+| Key binding | Description                |
+|-------------+----------------------------|
+| ~s~         | step                       |
+| ~i~         | step in                    |
+| ~o~         | step out                   |
+| ~S~         | next                       |
+| ~f~         | forward-sexp               |
+| ~H~         | goto here                  |
+| ~I~         | instrument callee          |
+| ~c~         | go                         |
+| ~C~         | fast continue              |
+| ~t~         | trace                      |
+| ~T~         | fast trace                 |
+| ~q~         | quit                       |
+| ~Q~         | quit nonstop               |
+| ~a~         | stop                       |
+| ~b~         | set breakpoint             |
+| ~u~         | unset breakpoint           |
+| ~B~         | next breakpoint            |
+| ~x~         | set conditional breakpoint |
+| ~r~         | previous result            |
+| ~e~         | evaluate expression        |
+| ~C-x C-e~   | evaluate last sexp         |
+| ~w~         | where                      |
+| ~?~         | help                       |
+| ~d~         | backtrace                  |
 
 In =debugger-mode= (=Debugger= is displayed in major mode segment of the mode
 line)
 
-TODO
+| Key binding | Description              |
+|-------------+--------------------------|
+| ~<tab>~     | forward                  |
+| ~S-<tab>~   | backward                 |
+| ~RET~       | backtrace help follow    |
+| ~p~         | backtrace backward frame |
+| ~c~         | continue                 |
+| ~R~         | record expression        |
+| ~d~         | step through             |
+| ~e~         | eval expression          |
+| ~J~         | jump                     |
+| ~L~         | list functions           |
+| ~b~         | frame                    |
+| ~r~         | return value             |
+| ~u~         | frame clear              |
+| ~C-v~       | backtrace toggle locals  |
+| ~q~         | quit                     |
+
+** Refactoring with emr
+
+| Key binding   | Description               |
+|---------------+---------------------------|
+| ~SPC m r f e~ | implement function        |
+| ~SPC m r f d~ | find unused definitions   |
+| ~SPC m r e f~ | extract function          |
+| ~SPC m r e v~ | extract variable          |
+| ~SPC m r e l~ | extract to let            |
+| ~SPC m r e c~ | extract constant          |
+| ~SPC m r e a~ | extract autoload          |
+| ~SPC m r i v~ | inline variable           |
+| ~SPC m r i s~ | inline let variable       |
+| ~SPC m r i f~ | inline function           |
+| ~SPC m r i a~ | insert autoload directive |
+| ~SPC m r d l~ | delete let binding form   |
+| ~SPC m r d d~ | delete unused definition  |
+| ~SPC m e w~   | eval and replace          |

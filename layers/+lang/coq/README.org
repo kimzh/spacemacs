@@ -19,6 +19,7 @@
   - [[#prover-queries][Prover queries]]
   - [[#moving-the-point][Moving the point]]
   - [[#inserting][Inserting]]
+  - [[#options][Options]]
 
 * Description
 This layer adds support for the [[https://coq.inria.fr/][Coq]] proof assistant (adapted from [[https://github.com/tchajed/spacemacs-coq][spacemacs-coq]]) to Spacemacs.
@@ -37,7 +38,7 @@ To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =coq= to the existing =dotspacemacs-configuration-layers= list in this file.
 
 ** Coq
-Official installers for MacOS and Windows are available from:
+Official installers for macOS and Windows are available from:
 [[https://coq.inria.fr/download]].
 
 Linux users can build from source or consult with their own package managers.
@@ -127,3 +128,9 @@ Note the last two are regular =company-coq= bindings, left alone since they are
 most useful in insert mode. The full =company-coq= tutorial showcasing all
 available =company-coq= key bindings can be accessed at any time using =SPC SPC
 company-coq-tutorial=.
+
+** Options
+
+| Key binding | Description                 |
+|-------------+-----------------------------|
+| ~SPC m T e~ | Toggle electric terminator. |

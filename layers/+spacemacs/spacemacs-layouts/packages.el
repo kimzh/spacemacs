@@ -1,6 +1,6 @@
 ;;; packages.el --- Spacemacs Layouts Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -28,17 +28,16 @@
       ;; transient state
       (spacemacs|transient-state-format-hint workspaces
         spacemacs--workspaces-ts-full-hint
-        "\n\n
- Go to^^^^^^                         Actions^^
- ─────^^^^^^───────────────────────  ───────^^──────────────────────
- [_0_.._9_]^^     nth/new workspace  [_d_] close current workspace
- [_C-0_.._C-9_]^^ nth/new workspace  [_R_] rename current workspace
- [_<tab>_]^^^^    last workspace     [_?_] toggle help\n
- [_c_/_C_]^^      create workspace
- [_l_]^^^^        layouts
- [_n_/_C-l_]^^    next workspace
- [_N_/_p_/_C-h_]  prev workspace\n
- [_w_]^^^^       workspace w/helm/ivy\n")
+        "\n
+ Go to^^^^^^                         Actions^^^^
+ ─────^^^^^^───────────────────────  ───────^^^^───────────────────────
+ [_0_.._9_]^^     nth/new workspace  [_c_/_C_] clone workspace
+ [_C-0_.._C-9_]^^ nth/new workspace  [_s_/_S_] single window workspace
+ [_<tab>_]^^^^    last workspace     [_d_]^^   close current workspace
+ [_n_/_C-l_]^^    next workspace     [_R_]^^   rename current workspace
+ [_N_/_p_/_C-h_]  prev workspace     [_?_]^^   toggle help
+ [_w_]^^^^        another workspace
+ [_l_]^^^^        layouts TS")
 
       (spacemacs|define-transient-state workspaces
         :title "Workspaces Transient State"
@@ -80,6 +79,8 @@
         ("N" eyebrowse-prev-window-config)
         ("p" eyebrowse-prev-window-config)
         ("R" spacemacs/workspaces-ts-rename :exit t)
+        ("s" spacemacs/single-win-workspace :exit t)
+        ("S" spacemacs/single-win-workspace)
         ("w" eyebrowse-switch-to-window-config :exit t))
       ;; note: we don't need to declare the `SPC l w' binding, it is
       ;; declare in the layout transient state
@@ -103,6 +104,7 @@
 
 
 (defun spacemacs-layouts/post-init-helm ()
+  (with-eval-after-load 'helm (spacemacs//persp-helm-setup))
   (spacemacs/set-leader-keys
     "bB" 'spacemacs-layouts/non-restricted-buffer-list-helm
     "pl" 'spacemacs/helm-persp-switch-project))
@@ -135,22 +137,22 @@
       ;; layouts transient state
       (spacemacs|transient-state-format-hint layouts
         spacemacs--layouts-ts-full-hint
-        "\n\n
- Go to^^^^^^                                  Actions^^
- ─────^^^^^^────────────────────────────────  ───────^^──────────────────────────────────────────────────
- [_0_.._9_]^^     nth/new layout              [_a_]^^   add buffer
- [_C-0_.._C-9_]^^ nth/new layout              [_A_]^^   add all from layout
- [_<tab>_]^^^^    last layout                 [_d_]^^   close current layout
- [_b_]^^^^        buffer in layout            [_D_]^^   close other layout
- [_h_]^^^^        default layout              [_L_]^^   load layouts from file
- [_l_]^^^^        layout w/helm/ivy           [_r_]^^   remove current buffer
- [_n_/_C-l_]^^    next layout                 [_R_]^^   rename current layout
- [_N_/_p_/_C-h_]  prev layout                 [_s_/_S_] save all layouts/save by names
- [_o_]^^^^        custom layout               [_t_]^^   show a buffer without adding it to current layout
- [_w_]^^^^        workspaces transient state  [_x_]^^   kill current w/buffers
- ^^^^^^                                       [_X_]^^   kill other w/buffers
- ^^^^^^                                       [_<_/_>_] move layout left/right
- ^^^^^^                                       [_?_]^^   toggle help\n")
+        "\n
+ Go to^^^^^^                        Actions^^^^
+ ─────^^^^^^──────────────────────  ───────^^^^───────────────────────────────
+ [_0_.._9_]^^     nth/new layout    [_a_]^^   add buffer
+ [_C-0_.._C-9_]^^ nth/new layout    [_A_]^^   add all buffers from layout
+ [_<tab>_]^^^^    last layout       [_d_]^^   close current layout
+ [_n_/_C-l_]^^    next layout       [_D_]^^   close other layout
+ [_N_/_p_/_C-h_]  prev layout       [_L_]^^   load layouts from file
+ [_b_]^^^^        buffer in layout  [_r_]^^   remove current buffer
+ [_h_]^^^^        default layout    [_R_]^^   rename current layout
+ [_l_]^^^^        another layout    [_s_/_S_] save all layouts/save by names
+ [_o_]^^^^        custom layout     [_t_]^^   show buffer w/o adding to layout
+ [_w_]^^^^        workspaces TS     [_x_]^^   kill current w/buffers
+ [_e_]^^^^        select layout     [_X_]^^   kill other w/buffers
+ ^^^^^^                             [_<_/_>_] move layout left/right
+ ^^^^^^                             [_?_]^^   toggle help")
 
       (spacemacs|define-transient-state layouts
         :title "Layouts Transient State"
@@ -169,6 +171,7 @@
         ("8" spacemacs/persp-switch-to-8 :exit t)
         ("9" spacemacs/persp-switch-to-9 :exit t)
         ("0" spacemacs/persp-switch-to-0 :exit t)
+        ("e" spacemacs/layout-switch-to :exit t)
         ("C-1" spacemacs/persp-switch-to-1)
         ("C-2" spacemacs/persp-switch-to-2)
         ("C-3" spacemacs/persp-switch-to-3)
@@ -179,7 +182,7 @@
         ("C-8" spacemacs/persp-switch-to-8)
         ("C-9" spacemacs/persp-switch-to-9)
         ("C-0" spacemacs/persp-switch-to-0)
-        ("<tab>" spacemacs/jump-to-last-layout)
+        ("<tab>" spacemacs/jump-to-last-layout :exit t)
         ("<return>" nil :exit t)
         ("TAB" spacemacs/jump-to-last-layout)
         ("RET" nil :exit t)
@@ -221,9 +224,12 @@
       (add-hook 'persp-mode-hook 'spacemacs//layout-autosave)
       (advice-add 'persp-load-state-from-file
                   :before 'spacemacs//layout-wait-for-modeline)
+      (when layouts-enable-local-variables
+        (advice-add 'persp-switch :before #'spacemacs//load-layout-local-vars))
       (dolist (fn spacemacs-layouts-restricted-functions)
         (advice-add fn
                     :around 'spacemacs-layouts//advice-with-persp-buffer-list))
+      (spacemacs/declare-prefix "b" "persp-buffers")
       (spacemacs/set-leader-keys
         "ba"   'persp-add-buffer
         "br"   'persp-remove-buffer))))
@@ -239,4 +245,7 @@
 (defun spacemacs-layouts/init-counsel-projectile ()
   (use-package counsel-projectile
     :defer t
-    :init (spacemacs/set-leader-keys "pl" 'spacemacs/ivy-persp-switch-project)))
+    :init (spacemacs/set-leader-keys "pl" 'spacemacs/ivy-persp-switch-project)
+    :config (ivy-set-actions
+             'spacemacs/ivy-persp-switch-project
+             '(("d" spacemacs/ivy-switch-project-open-dired "dired")))))

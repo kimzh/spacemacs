@@ -1,6 +1,6 @@
 ;;; packages.el --- react layer packages file for Spacemacs. -*- lexical-binding: t -*-
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Andrea Moretti <axyzxp@gmail.com>
 ;; URL: https://github.com/axyz
@@ -22,6 +22,7 @@
     rjsx-mode
     smartparens
     tern
+    tide
     web-beautify
     yasnippet
     ))
@@ -42,7 +43,8 @@
   (with-eval-after-load 'flycheck
     (dolist (checker '(javascript-eslint javascript-standard))
       (flycheck-add-mode checker 'rjsx-mode)))
-  (spacemacs/enable-flycheck 'rjsx-mode))
+  (spacemacs/enable-flycheck 'rjsx-mode)
+  (add-hook 'rjsx-mode-hook #'spacemacs//javascript-setup-checkers 'append))
 
 (defun react/pre-init-import-js ()
   (when (eq javascript-import-tool 'import-js)
@@ -72,14 +74,19 @@
     (add-hook 'rjsx-mode-local-vars-hook #'spacemacs//react-setup-backend)
     ;; set next-error-function to nil because we use flycheck
     (add-hook 'rjsx-mode-local-vars-hook #'spacemacs//react-setup-next-error-fn)
+    ;; setup fmt on save
+    (when javascript-fmt-on-save
+      (add-hook 'rjsx-mode-local-vars-hook #'spacemacs//react-fmt-before-save-hook))
 
     :config
     ;; declare prefix
     (spacemacs/declare-prefix-for-mode 'rjsx-mode "mr" "refactor")
+    (spacemacs/declare-prefix-for-mode 'rjsx-mode "mrl" "localize/log")
     (spacemacs/declare-prefix-for-mode 'rjsx-mode "mrr" "rename")
     (spacemacs/declare-prefix-for-mode 'rjsx-mode "mh" "documentation")
     (spacemacs/declare-prefix-for-mode 'rjsx-mode "mg" "goto")
 
+    (spacemacs/set-leader-keys-for-major-mode 'rjsx-mode "rlt" 'js2r-log-this)
     (spacemacs/set-leader-keys-for-major-mode 'rjsx-mode "rt" 'rjsx-rename-tag-at-point)
 
     (with-eval-after-load 'rjsx-mode
@@ -91,11 +98,15 @@
 
 (defun react/post-init-smartparens ()
   (if dotspacemacs-smartparens-strict-mode
-      (add-hook 'react-mode-hook #'smartparens-strict-mode)
-    (add-hook 'react-mode-hook #'smartparens-mode)))
+      (add-hook 'rjsx-mode-hook #'smartparens-strict-mode)
+    (add-hook 'rjsx-mode-hook #'smartparens-mode)))
 
 (defun react/post-init-tern ()
   (add-to-list 'tern--key-bindings-modes 'rjsx-mode))
+
+(defun react/post-init-tide ()
+  (when (eq (spacemacs//typescript-backend) `tide)
+    (add-to-list 'tide-managed-modes 'rjsx-mode)))
 
 (defun react/pre-init-web-beautify ()
   (when (eq javascript-fmt-tool 'web-beautify)

@@ -1,6 +1,6 @@
 ;;; packages.el --- Prodigy Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -14,7 +14,7 @@
 (defun prodigy/init-prodigy ()
   (use-package prodigy
     :init
-    (spacemacs/set-leader-keys "aS" 'prodigy)
+    (spacemacs/set-leader-keys "atp" 'prodigy)
     :config
     (progn
       (evilified-state-evilify prodigy-mode prodigy-mode-map

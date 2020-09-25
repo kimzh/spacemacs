@@ -1,6 +1,6 @@
 ;;; funcs.el --- Spacemacs editing Layer functions File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -71,6 +71,16 @@ or `sp-local-pair'."
                       :inherit 'lazy-highlight
                       :background nil
                       :foreground nil))
+
+(defun spacemacs//put-clean-aindent-last ()
+  "Put `clean-aindent--check-last-point` to end of `post-command-hook`.
+This functions tries to ensure that clean-aindent checks for indent
+operations after each indent operations have been done.
+
+See issues #6520 and #13172"
+  (when clean-aindent-mode
+    (remove-hook 'post-command-hook 'clean-aindent--check-last-point)
+    (add-hook 'post-command-hook 'clean-aindent--check-last-point t)))
 
 
 ;; uuidgen

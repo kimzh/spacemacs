@@ -1,6 +1,6 @@
 ;;; packages.el --- Spacemacs Misc. Layer packages File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -49,4 +49,4 @@
     :init
     (progn
       (defalias 'spacemacs/browse-docs-online-at-point 'devdocs-search)
-      (spacemacs/set-leader-keys "db" #'spacemacs/browse-docs-online-at-point))))
+      (spacemacs/set-leader-keys "hbd" #'spacemacs/browse-docs-online-at-point))))

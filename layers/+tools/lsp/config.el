@@ -1,6 +1,6 @@
 ;;; config.el --- Language Server Protocol Layer config file for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Fangrui Song <i@maskray.me>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -14,11 +14,6 @@
   "If `simple' binds lightweight navigation functions under `SPC m g'.
 If `peek' binds lsp-ui navigation functions under `SPC m g'.
 If `both', binds lightweight navigation functions under `SPC m g' and lsp-ui functions under `SPC m G'")
-
-(defvar lsp-prefer-flymake nil
-  "If nil, prefer the lsp flycheck checker.
-If non-nil, prefer the lsp flymake checker.
-If :none, use neither flycheck nor flymake.")
 
 ;; These are config variables exposed by the lsp-ui package
 ;; They all have toggles bound under 't' in spacemacs/lsp-define-keys-for-mode

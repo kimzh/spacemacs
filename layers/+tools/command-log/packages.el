@@ -1,6 +1,6 @@
 ;;; packages.el --- command-log Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -23,7 +23,7 @@
     :commands global-command-log-mode
     ;; :commands (clm/open-command-log-buffer global-command-log-mode spacemacs/toggle-command-log-mode)
     :init
-    (spacemacs/set-leader-keys "aL" #'global-command-log-mode)
+    (spacemacs/set-leader-keys "atl" #'global-command-log-mode)
     :config
     (setq clm/log-command-exceptions* (append clm/log-command-exceptions*
                                               '(evil-next-line

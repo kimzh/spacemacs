@@ -1,6 +1,6 @@
 ;;; packages.el --- Purescript Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Ryan L. Bell
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -37,6 +37,7 @@
     :defer t
     :init
     (progn
+      (add-to-list 'spacemacs-indent-sensitive-modes 'purescript-mode)
       (add-hook 'purescript-mode-hook 'turn-on-purescript-indentation)
       (add-hook 'purescript-mode-hook 'purescript-decl-scan-mode)
       (spacemacs/declare-prefix-for-mode 'purescript-mode "mg" "goto")

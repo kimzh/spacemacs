@@ -1,6 +1,6 @@
 ;;; layers.el --- typescript Layer layers File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Chris Bowdon <c.bowdon@bath.edu>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -9,4 +9,8 @@
 ;;
 ;;; License: GPLv3
 
-(configuration-layer/declare-layers '(node javascript prettier))
+(configuration-layer/declare-layer-dependencies '(node javascript prettier tide))
+
+(when (and (boundp 'typescript-backend)
+           (eq typescript-backend 'lsp))
+  (configuration-layer/declare-layer-dependencies '(lsp)))

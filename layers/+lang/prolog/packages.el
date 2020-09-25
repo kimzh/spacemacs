@@ -1,6 +1,6 @@
 ;;; packages.el --- prolog layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2017 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Newres Al Haider <newrescode@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -61,7 +61,6 @@
 
 (defun prolog/init-ediprolog ()
   (use-package ediprolog
-    :hook prolog-mode
     :config
     (progn
       (spacemacs/set-leader-keys-for-major-mode 'prolog-mode

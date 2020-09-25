@@ -1,6 +1,6 @@
 ;;; hybrid-mode.el --- Put one foot in the church of Emacs
 
-;; Copyright (C) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Authors: Justin Burkett <justin@burkett.cc>
 ;;          Chris Ewald <chrisewald@gmail.com>
@@ -31,7 +31,7 @@
 
 (require 'evil)
 
-
+;;;###autoload
 (defcustom hybrid-style-default-state
   (spacemacs|dotspacemacs-backward-compatibility
    hybrid-mode-default-state normal)
@@ -39,6 +39,7 @@
   :group 'spacemacs
   :type 'symbol)
 
+;;;###autoload
 (defcustom hybrid-style-enable-hjkl-bindings
   (spacemacs|dotspacemacs-backward-compatibility
    hybrid-mode-enable-hjkl-bindings nil)
@@ -46,6 +47,7 @@
   :group 'spacemacs
   :type 'boolean)
 
+;;;###autoload
 (defcustom hybrid-style-enable-evilified-state
   (spacemacs|dotspacemacs-backward-compatibility
    hybrid-mode-enable-evilified-state t)
@@ -53,6 +55,7 @@
   :group 'spacemacs
   :type 'boolean)
 
+;;;###autoload
 (defcustom hybrid-style-use-evil-search-module
   (spacemacs|dotspacemacs-backward-compatibility
    hybrid-mode-use-evil-search-module nil)

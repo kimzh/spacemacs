@@ -1,6 +1,6 @@
 ;;; packages.el --- Themes Mega-Pack Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -62,6 +62,8 @@
     majapahit-theme
     material-theme
     minimal-theme
+    modus-operandi-theme
+    modus-vivendi-theme
     moe-theme
     molokai-theme
     monokai-theme

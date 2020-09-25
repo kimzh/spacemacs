@@ -1,6 +1,6 @@
 ;;; funcs.el --- rcirc Layer functions File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -120,9 +120,9 @@ This doesn't support the chanserv auth method. "
 
 (defun spacemacs//znc-auth-source-fetch-password (server)
   "Given a server with at least :host :port :login, return the :password"
-  (destructuring-bind (&key host auth &allow-other-keys)
+  (cl-destructuring-bind (&key host auth &allow-other-keys)
       (cdr server)
-    (destructuring-bind (&key secret &allow-other-keys)
+    (cl-destructuring-bind (&key secret &allow-other-keys)
         (car (auth-source-search :host host
                                  :port "irc"
                                  :user auth
@@ -150,21 +150,21 @@ This doesn't support the chanserv auth method. "
   (cl-loop
    for s in rcirc-server-alist
    collect
-   (destructuring-bind (&key host
-                             (port rcirc-default-port)
-                             (nick rcirc-default-nick)
-                             (user-name rcirc-default-user-name)
-                             (full-name rcirc-default-full-name)
-                             channels
-                             password
-                             encryption
-                             &allow-other-keys
-                             &aux contact (server (car s)))
+   (cl-destructuring-bind (&key host
+                                (port rcirc-default-port)
+                                (nick rcirc-default-nick)
+                                (user-name rcirc-default-user-name)
+                                (full-name rcirc-default-full-name)
+                                channels
+                                password
+                                encryption
+                                &allow-other-keys
+                                &aux contact (server (car s)))
        (cdr s)
      (let ((host (or host server)) ; catter with server without :host
            (connected
             (cl-loop for p in (rcirc-process-list)
-                  thereis (string= server (process-get p :rcirc-server)))))
+                     thereis (string= server (process-get p :rcirc-server)))))
        (unless connected
          (let ((process
                 (rcirc-connect host port nick user-name

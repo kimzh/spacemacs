@@ -1,6 +1,6 @@
 ;;; packages.el --- coq layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Jeremy Bi <bixuanxbi@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -104,7 +104,9 @@
         "ir" 'coq-insert-requires
         "is" 'coq-insert-section-or-module
         "it" 'coq-insert-tactic
-        "iT" 'coq-insert-tactical))))
+        "iT" 'coq-insert-tactical
+        ;; Options
+        "Te" 'proof-electric-terminator-toggle))))
 
 (defun coq/post-init-smartparens ()
   (spacemacs/add-to-hooks (if dotspacemacs-smartparens-strict-mode

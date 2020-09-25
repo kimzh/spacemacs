@@ -1,6 +1,6 @@
 ;;; funcs.el --- Clojure Layer functions File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -34,6 +34,15 @@
                                  (match-end 1) "∈")
                  nil))))))
 
+
+(defun spacemacs/cider-eval-sexp-end-of-line ()
+  "Evaluate the last sexp at the end of the current line."
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (cider-eval-last-sexp)))
+
+
 (defun spacemacs//cider-eval-in-repl-no-focus (form)
   "Insert FORM in the REPL buffer and eval it."
   (while (string-match "\\`[ \t\n\r]+\\|[ \t\n\r]+\\'" form)
@@ -43,7 +52,9 @@
       (goto-char pt-max)
       (insert form)
       (indent-region pt-max (point))
-      (cider-repl-return))))
+      (cider-repl-return)
+      (with-selected-window (get-buffer-window (cider-current-connection))
+               (goto-char (point-max))))))
 
 (defun spacemacs/cider-send-last-sexp-to-repl ()
   "Send last sexp to REPL and evaluate it without changing
@@ -99,12 +110,12 @@ the focus."
   (cider-insert-ns-form-in-repl t)
   (evil-insert-state))
 
-(defun spacemacs/cider-send-buffer-in-repl-and-focus ()
+(defun spacemacs/cider-send-buffer-in-repl-and-focus (&optional set-namespace)
   "Send the current buffer in the REPL and switch to the REPL in
-`insert state'."
-  (interactive)
+`insert state'. When set-namespace, also change into the namespace of the buffer."
+  (interactive "P")
   (cider-load-buffer)
-  (cider-switch-to-repl-buffer)
+  (cider-switch-to-repl-buffer set-namespace)
   (evil-insert-state))
 
 (defun spacemacs/cider-test-run-focused-test ()
@@ -207,3 +218,24 @@ in your Spacemacs configuration:
                  cider-repl-mode
                  cider-clojure-interaction-mode))
      ,@body))
+
+(defun spacemacs//clj-repl-wrap-c-j ()
+  "Dynamically dispatch c-j to company or repl functions."
+  (interactive)
+  (if (company-tooltip-visible-p)
+      (company-select-next)
+    (cider-repl-next-input)))
+
+(defun spacemacs//clj-repl-wrap-c-k ()
+  "Dynamically dispatch c-k to company or repl functions."
+  (interactive)
+  (if (company-tooltip-visible-p)
+      (company-select-previous)
+    (cider-repl-previous-input)))
+
+(defun spacemacs/cider-find-and-clear-repl-buffer ()
+  "Calls cider-find-and-clear-repl-output interactively with C-u prefix
+set so that it clears the whole REPL buffer, not just the output."
+  (interactive)
+  (let ((current-prefix-arg '(4)))
+    (call-interactively 'cider-find-and-clear-repl-output)))

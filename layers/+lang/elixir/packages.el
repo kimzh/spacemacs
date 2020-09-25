@@ -1,6 +1,6 @@
 ;;; packages.el --- Elixir Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -9,25 +9,21 @@
 ;;
 ;;; License: GPLv3
 
-(setq elixir-packages
-      '(
-        alchemist
-        company
-        elixir-mode
-        flycheck
-        flycheck-mix
-        flycheck-credo
-        ggtags
-        counsel-gtags
-        helm-gtags
-        ob-elixir
-        popwin
-        smartparens
-        ))
-
-(defun elixir/post-init-company ()
-  ;; backend specific
-  (add-hook 'elixir-mode-local-vars-hook #'spacemacs//elixir-setup-company))
+(defconst elixir-packages
+  '(
+    alchemist
+    company
+    counsel-gtags
+    dap-mode
+    elixir-mode
+    evil-matchit
+    flycheck
+    flycheck-credo
+    ggtags
+    helm-gtags
+    ob-elixir
+    popwin
+    smartparens))
 
 (defun elixir/init-alchemist ()
   (use-package alchemist
@@ -40,7 +36,7 @@
       (setq alchemist-project-compile-when-needed t
             alchemist-test-status-modeline nil)
       (add-to-list 'spacemacs-jump-handlers-elixir-mode
-                '(alchemist-goto-definition-at-point :async t)))
+                   '(alchemist-goto-definition-at-point :async t)))
     :config
     (spacemacs/declare-prefix-for-mode 'elixir-mode "mX" "hex")
     (spacemacs/declare-prefix-for-mode 'elixir-mode "mc" "compile")
@@ -53,6 +49,7 @@
     (spacemacs/declare-prefix-for-mode 'elixir-mode "ms" "iex")
     (spacemacs/declare-prefix-for-mode 'elixir-mode "mt" "test")
     (spacemacs/declare-prefix-for-mode 'elixir-mode "mx" "execute")
+    (spacemacs/declare-prefix-for-mode 'elixir-mode "md" "debug")
     (spacemacs/set-leader-keys-for-major-mode 'elixir-mode
       "el" 'alchemist-eval-current-line
       "eL" 'alchemist-eval-print-current-line
@@ -130,7 +127,9 @@
       "oi" 'alchemist-macroexpand-once-region
       "oI" 'alchemist-macroexpand-once-print-region
       "or" 'alchemist-macroexpand-region
-      "oR" 'alchemist-macroexpand-print-region)
+      "oR" 'alchemist-macroexpand-print-region
+
+      "db" 'spacemacs/elixir-toggle-breakpoint)
 
     (dolist (mode (list alchemist-compile-mode-map
                         alchemist-eval-mode-map
@@ -144,34 +143,44 @@
       (evil-define-key 'normal mode
         (kbd "q") 'quit-window))))
 
-(defun elixir/init-flycheck-mix ()
-  (use-package flycheck-mix
-    :commands (flycheck-mix-setup)
-    :init
-    (progn
-      (add-to-list 'safe-local-variable-values
-                   (cons 'elixir-enable-compilation-checking nil))
-      (add-to-list 'safe-local-variable-values
-                   (cons 'elixir-enable-compilation-checking t))
-      (add-hook 'elixir-mode-local-vars-hook
-                'spacemacs//elixir-enable-compilation-checking))))
+(defun elixir/post-init-company ()
+  ;; backend specific
+  (add-hook 'elixir-mode-local-vars-hook #'spacemacs//elixir-setup-company))
 
-(defun elixir/init-flycheck-credo ()
-  (use-package flycheck-credo
-    :defer t
-    :init (add-hook 'flycheck-mode-hook #'flycheck-credo-setup)))
+(defun elixir/post-init-counsel-gtags ()
+  (spacemacs/counsel-gtags-define-keys-for-mode 'elixir-mode))
+
+(defun elixir/pre-init-dap-mode ()
+  (pcase (spacemacs//elixir-backend)
+    (`lsp (add-to-list 'spacemacs--dap-supported-modes 'elixir-mode)))
+  (add-hook 'elixir-mode-local-vars-hook #'spacemacs//elixir-setup-dap))
+
+(defun elixir/post-init-evil-matchit ()
+  (add-hook 'elixir-mode-hook `turn-on-evil-matchit-mode))
 
 (defun elixir/init-elixir-mode ()
   (use-package elixir-mode
     :defer t
     :init (spacemacs/add-to-hook 'elixir-mode-hook
-                                 '(spacemacs//elixir-setup-backend))
+                                 '(spacemacs//elixir-setup-backend
+                                   spacemacs//elixir-default))
     :config
     (spacemacs/set-leader-keys-for-major-mode 'elixir-mode
       "=" 'elixir-format)))
 
 (defun elixir/post-init-flycheck ()
   (spacemacs/enable-flycheck 'elixir-mode))
+
+(defun elixir/init-flycheck-credo ()
+  (use-package flycheck-credo
+    :defer t
+    :init (add-hook 'flycheck-mode-hook #'flycheck-credo-setup)))
+
+(defun elixir/post-init-ggtags ()
+  (add-hook 'elixir-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))
+
+(defun elixir/post-init-helm-gtags ()
+  (spacemacs/helm-gtags-define-keys-for-mode 'elixir-mode))
 
 (defun elixir/pre-init-ob-elixir ()
   (spacemacs|use-package-add-hook org
@@ -204,12 +213,3 @@
          :when '(("SPC" "RET"))
          :post-handlers '(:add spacemacs//elixir-do-end-close-action)
          :actions '(insert))))))
-
-(defun elixir/post-init-ggtags ()
-  (add-hook 'elixir-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))
-
-(defun elixir/post-init-counsel-gtags ()
-  (spacemacs/counsel-gtags-define-keys-for-mode 'elixir-mode))
-
-(defun elixir/post-init-helm-gtags ()
-  (spacemacs/helm-gtags-define-keys-for-mode 'elixir-mode))

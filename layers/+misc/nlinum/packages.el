@@ -1,6 +1,6 @@
 ;;; packages.el --- nlinum Layer packages File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -50,7 +50,5 @@
               (nlinum-relative-setup-evil)
               (add-hook 'nlinum-mode-hook 'nlinum-relative-on))
             (spacemacs/set-leader-keys "tr" 'spacemacs/nlinum-relative-toggle)))))
-
-  (defconst nlinum-packages nil)
-  (spacemacs-buffer/warning (concat "nlinum layer is deprecated for Emacs 26.1 and above."
-                      " You can safely remove it from your dotfile.")))
+  ;;  Emacs version 26 and above
+  (defconst nlinum-packages nil))

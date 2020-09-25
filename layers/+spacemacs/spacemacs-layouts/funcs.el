@@ -1,6 +1,6 @@
-;;; funcs.el --- Spacemacs Layouts Layer functions File
+;;; funcs.el --- Spacemacs Layouts Layer functions File -*- lexical-binding: t; -*-
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -71,8 +71,9 @@ Cancels autosave on exiting perspectives mode."
     (persp-switch spacemacs--last-selected-layout)))
 
 (defun spacemacs-layouts/non-restricted-buffer-list-helm ()
+  "Show all buffers accross all layouts."
   (interactive)
-  (let ((ido-make-buffer-list-hook (remove #'persp-restrict-ido-buffers ido-make-buffer-list-hook)))
+  (let ((helm-buffer-list-reorder-fn #'helm-buffers-reorder-buffer-list))
     (helm-mini)))
 
 (defun spacemacs-layouts/non-restricted-buffer-list-ivy ()
@@ -104,8 +105,8 @@ Cancels autosave on exiting perspectives mode."
 (defun spacemacs//layouts-ts-toggle-hint ()
   "Toggle the full hint docstring for the layouts transient-state."
   (interactive)
-  (setq spacemacs--ts-full-hint-toggle
-        (logxor spacemacs--ts-full-hint-toggle 1)))
+  (setq spacemacs--layouts-ts-full-hint-toggle
+        (not spacemacs--layouts-ts-full-hint-toggle)))
 
 (defun spacemacs//layout-format-name (name pos)
   "Format the layout name given by NAME for display in mode-line."
@@ -128,11 +129,11 @@ Cancels autosave on exiting perspectives mode."
           (concat " "
                   (mapconcat (lambda (persp)
                                (spacemacs//layout-format-name
-                                persp (position persp persp-list)))
+                                persp (cl-position persp persp-list)))
                              persp-list " | "))))
     (concat
      formatted-persp-list
-     (if (equal 1 spacemacs--ts-full-hint-toggle)
+     (if spacemacs--layouts-ts-full-hint-toggle
          spacemacs--layouts-ts-full-hint
        (concat "  (["
                (propertize "?" 'face 'hydra-face-red)
@@ -181,6 +182,14 @@ ask the user if a new layout should be created."
            (interactive)
            (spacemacs/layout-switch-by-pos ,(if (eq 0 i) 9 (1- i))))))
 
+(defun spacemacs/layout-switch-to (pos)
+  "Switch to perspective but ask for POS.
+If POS has no layout, and `dotspacemacs-auto-generate-layout-names'
+is non-nil, create layout with auto-generated name. Otherwise,
+ask the user if a new layout should be created."
+  (interactive "NLayout to switch to/create: ")
+  (spacemacs/layout-switch-by-pos (1- pos)))
+
 (defun spacemacs/layout-goto-default ()
   "Go to `dotspacemacs-default-layout-name` layout"
   (interactive)
@@ -200,7 +209,10 @@ ask the user if a new layout should be created."
 
 (defun spacemacs/layouts-ts-close-other ()
   (interactive)
-  (call-interactively 'spacemacs/helm-persp-close)
+  (cond ((configuration-layer/layer-used-p 'helm)
+         (spacemacs/helm-persp-close))
+        ((configuration-layer/layer-used-p 'ivy)
+         (spacemacs/ivy-spacemacs-layout-close-other)))
   (spacemacs/layouts-transient-state/body))
 
 (defun spacemacs/layouts-ts-kill ()
@@ -439,7 +451,6 @@ perspectives does."
    :sources
    `(,(spacemacs//helm-perspectives-source)
      ,(helm-build-dummy-source "Create new perspective"
-        :requires-pattern t
         :action
         '(("Create new perspective" .
            spacemacs//create-persp-with-home-buffer)
@@ -490,6 +501,18 @@ perspectives does."
                                     (persp-kill-without-buffers project)))))
       (projectile-switch-project-by-name project))))
 
+(defun spacemacs//helm-persp-switch-project-action-maker (project-action)
+  "Make persistent actions for `spacemacs/helm-persp-switch-project'.
+Run PROJECT-ACTION on project."
+  (lambda (project)
+    (spacemacs||switch-project-persp project
+      (let ((projectile-completion-system 'helm)
+            (projectile-switch-project-action project-action)
+            (helm-quit-hook (append helm-quit-hook
+                                    (lambda ()
+                                      (persp-kill-without-buffers project)))))
+        (projectile-switch-project-by-name project)))))
+
 (defun spacemacs/helm-persp-switch-project (arg)
   "Select a project layout using Helm."
   (interactive "P")
@@ -503,10 +526,42 @@ perspectives does."
                projectile-known-projects))
      :fuzzy-match helm-projectile-fuzzy-match
      :mode-line helm-read-file-name-mode-line-string
-     :action '(("Switch to Project Perspective" .
-                spacemacs//helm-persp-switch-project-action)))
+     :keymap (let ((map (make-sparse-keymap)))
+               (define-key map
+                 (kbd "C-d") #'(lambda () (interactive)
+                                 (helm-exit-and-execute-action
+                                  (lambda (project)
+                                    (spacemacs||switch-project-persp project
+                                      (dired project))))))
+               map)
+     :action `(("Switch to Project Perspective" .
+                spacemacs//helm-persp-switch-project-action)
+               ("Switch to Project Perspective and Open Dired `C-d'" .
+                ,(spacemacs//helm-persp-switch-project-action-maker
+                  (lambda () (dired "."))))
+               ("Switch to Project Perspective and Show Recent Files" .
+                ,(spacemacs//helm-persp-switch-project-action-maker
+                  'helm-projectile-recentf))
+               ("Switch to Project Perspective and Search" .
+                ,(spacemacs//helm-persp-switch-project-action-maker
+                  'spacemacs/helm-project-smart-do-search))))
    :buffer "*Helm Projectile Layouts*"))
 
+(defun spacemacs//make-helm-list-reorder-fn (fn)
+  "Take a function `helm-buffer-list-reorder-fn' and return a
+`helm-buffer-list-reorder-fn' function.
+This the return function will filter out buffers not in layout and then
+pass results to FN."
+  (lambda (visibles others)
+    (funcall fn
+             (seq-remove #'spacemacs//layout-not-contains-buffer-p visibles)
+             (seq-remove #'spacemacs//layout-not-contains-buffer-p others))))
+
+(defun spacemacs//persp-helm-setup ()
+  "Set new `helm-buffer-list-reorder-fn'.
+Compose it with a new one that will filter out a buffers on in current layout."
+  (let ((my-wrapper (spacemacs//make-helm-list-reorder-fn helm-buffer-list-reorder-fn)))
+    (setq helm-buffer-list-reorder-fn my-wrapper)))
 
 ;; Ivy integration
 (defun spacemacs//ivy-persp-switch-project-action (project)
@@ -525,6 +580,11 @@ perspectives does."
               projectile-known-projects)
             :action #'spacemacs//ivy-persp-switch-project-action
             :caller 'spacemacs/ivy-persp-switch-project))
+
+(defun spacemacs/ivy-switch-project-open-dired (project)
+  (interactive)
+  (spacemacs||switch-project-persp project
+    (dired project)))
 
 
 ;; Eyebrowse
@@ -572,6 +632,7 @@ WINDOW is the representation of a window in a window-state object."
   "Execute FN once for each window in STATE and make a list of the results.
 FN is a function to execute.
 STATE is a window-state object."
+  (defvar result) ;; use dynamic binding
   (let (result)
     (spacemacs/window-state-walk-windows-1 (cdr state) fn)
     result))
@@ -628,11 +689,17 @@ STATE is a window-state object as returned by `window-state-get'."
 
 ;; Eyebrowse transient state
 
+(defun spacemacs/single-win-workspace ()
+  "Create a new single window workspace, and show the Spacemacs home buffer."
+  (interactive)
+  (let ((eyebrowse-new-workspace 'spacemacs/home))
+    (eyebrowse-create-window-config)))
+
 (defun spacemacs//workspaces-ts-toggle-hint ()
   "Toggle the full hint docstring for the workspaces transient-state."
   (interactive)
-  (setq spacemacs--ts-full-hint-toggle
-        (logxor spacemacs--ts-full-hint-toggle 1)))
+  (setq spacemacs--workspaces-ts-full-hint-toggle
+        (not spacemacs--workspaces-ts-full-hint-toggle)))
 
 (defun spacemacs/workspaces-ts-rename ()
   "Rename a workspace and get back to transient-state."
@@ -658,7 +725,7 @@ STATE is a window-state object as returned by `window-state-get'."
    " "
    (mapconcat 'spacemacs//workspace-format-name
               (eyebrowse--get 'window-configs) " | ")
-   (if (equal 1 spacemacs--ts-full-hint-toggle)
+   (if spacemacs--workspaces-ts-full-hint-toggle
        spacemacs--workspaces-ts-full-hint
      (concat "  (["
              (propertize "?" 'face 'hydra-face-red)
@@ -763,4 +830,34 @@ containing the buffer."
       (dolist (window-config
                (append (persp-parameter 'gui-eyebrowse-window-configs persp)
                        (persp-parameter 'term-eyebrowse-window-configs persp)))
-        (eyebrowse--rename-window-config-buffers window-config old new)))))
+        (eyebrowse--rename-window-config-buffers window-config old new)))
+    new))
+
+
+;; layout local variables
+
+(defun spacemacs/make-variable-layout-local (&rest vars)
+  "Make variables become layout-local whenever they are set.
+Accepts a list of VARIABLE, DEFAULT-VALUE pairs.
+
+(spacemacs/make-variable-layout-local 'foo 1 'bar 2)"
+  (cl-loop for (symbol default-value) on vars by 'cddr
+           do (add-to-list 'spacemacs--layout-local-variables (cons symbol default-value))))
+
+(defun spacemacs//load-layout-local-vars (persp-name &rest _)
+  "Load the layout-local values of variables for PERSP-NAME."
+  (let ((layout-local-vars (-filter 'boundp
+                                    (-map 'car
+                                          spacemacs--layout-local-variables))))
+    ;; save the current layout
+    (ht-set! spacemacs--layout-local-map
+             (spacemacs//current-layout-name)
+             (--map (cons it (symbol-value it))
+                    layout-local-vars))
+    ;; load the default values into the new layout
+    (--each layout-local-vars
+      (set it (alist-get it spacemacs--layout-local-variables)))
+    ;; override with the previously bound values for the new layout
+    (--when-let (ht-get spacemacs--layout-local-map persp-name)
+      (-each it
+        (-lambda ((var . val)) (set var val))))))

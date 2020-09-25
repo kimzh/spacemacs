@@ -1,6 +1,6 @@
 ;;; packages.el --- ranger Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Rich Alesi
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
@@ -18,9 +18,10 @@
         ))
 
 (defun ranger//set-leader-keys ()
+  (spacemacs/declare-prefix "atr" "ranger/deer")
   (spacemacs/set-leader-keys
-    "ar" 'ranger
-    "ad" 'deer
+    "atrr" 'ranger
+    "atrd" 'deer
     "jD" 'deer-jump-other-window
     "jd" 'deer))
 
@@ -40,7 +41,10 @@
       (unless (file-directory-p image-dired-dir)
         (make-directory image-dired-dir)))
     :config
-    (define-key ranger-mode-map (kbd "-") 'ranger-up-directory)))
+    (progn
+      (when (memq 'helm dotspacemacs-configuration-layers)
+        (require 'helm))
+      (define-key ranger-mode-map (kbd "-") 'ranger-up-directory))))
 
 (defun ranger/post-init-dired ()
   ;; Be sure to override dired bindings

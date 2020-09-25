@@ -8,10 +8,22 @@
 - [[#description][Description]]
   - [[#features][Features:]]
 - [[#install][Install]]
+  - [[#install-vterm][Install vterm]]
+    - [[#check-that-your-emacs-supports-dynamic-modules][Check that your Emacs supports dynamic modules]]
+    - [[#install-cmake-311-or-higher][Install CMake 3.11 or higher]]
+      - [[#macos][macOS]]
+      - [[#ubuntu][Ubuntu]]
+    - [[#install-libtool][Install libtool]]
+      - [[#ubuntu-1][Ubuntu]]
+    - [[#install-libvterm-optional][Install libvterm (Optional)]]
+      - [[#macos-1][macOS]]
+      - [[#linux][Linux]]
+      - [[#windows][Windows]]
 - [[#configuration][Configuration]]
   - [[#default-shell][Default shell]]
   - [[#default-shell-position-width-and-height][Default shell position, width, and height]]
-  - [[#set-shell-for-term-and-ansi-term][Set shell for term and ansi-term]]
+  - [[#external-terminal-emulator][External terminal emulator]]
+  - [[#set-shell-for-term-ansi-term-and-vterm][Set shell for term, ansi-term and vterm]]
   - [[#set-shell-for-multi-term][Set shell for multi-term]]
   - [[#width-of-the-shell-popup-buffers][Width of the shell popup buffers]]
   - [[#enable-em-smart-in-eshell][Enable em-smart in Eshell]]
@@ -28,29 +40,84 @@ This layer configures the various shells available in Emacs.
 
 ** Features:
 - Shell integration
+- Running external terminal emulator in current/project directory
 
 * Install
 To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =shell= to the existing =dotspacemacs-configuration-layers= list in this
 file.
 
+** Install vterm
+=vterm= is the latest addition to Emacs' set of terminal emulators and the only
+one to be implemented in C, leveraging =libvterm=. It is the only one in Emacs
+at the moment to be as fast as a standalone terminal with full support for
+=ncurses=, =vim=, =htop= and the likes.
+
+On its first run, =vterm= will automatically compile its dynamic library, for
+which dependencies are needed. For more details, head to the [[https://github.com/akermu/emacs-libvterm][official docs]].
+
+*** Check that your Emacs supports dynamic modules
+You can check if your Emacs supports loading dynamic libraries by checking if
+the =system-configuration-features= variable contains the string =MODULES=. If
+not, you need to get a version of Emacs that supports it or compile it from
+source supplying the =./configure --with-module= option at configure time.
+
+*** Install CMake 3.11 or higher
+**** macOS
+#+BEGIN_SRC shell
+  brew install cmake
+#+END_SRC
+
+**** Ubuntu
+#+BEGIN_SRC shell
+  sudo apt install cmake
+#+END_SRC
+
+*** Install libtool
+If the =libtool= command does not exist in your system (usually in
+=/usr/bin/libtool=), you need to install it:
+
+**** Ubuntu
+#+BEGIN_SRC shell
+  sudo apt install libtool-bin
+#+END_SRC
+
+*** Install libvterm (Optional)
+**** macOS
+#+BEGIN_SRC shell
+  brew install libvterm
+#+END_SRC
+
+**** Linux
+This library can be found in the official repositories of most distributions
+(e.g., Arch, Debian, Fedora, Gentoo, openSUSE, Ubuntu). If not available, it
+will be downloaded during the compilation process. Some distributions
+(e.g. Ubuntu 18.04) have versions of libvterm that are too old.
+If you find compilation errors related to VTERM_COLOR, you should
+not use your system libvterm.
+
+**** Windows
+Not supported at the moment, [[https://github.com/akermu/emacs-libvterm/issues/12][but possibly coming up]].
+
 * Configuration
 ** Default shell
-Emacs supports three types of shell:
-- the Emacs shell
+Emacs supports five types of shells/terminals:
+- the Emacs shell (eshell)
 - the inferior shell
 - the terminal emulator
 - the ANSI terminal emulator
+- the vterm terminal emulator based on the C library libvterm
 
 You can find a quick introductions to them [[https://www.masteringemacs.org/article/running-shells-in-emacs-overview][here]].
 
 To define the default shell you can set the layer variable =shell-default-shell=
 to the following variables:
-- =eshell=
+- =eshell= (default on Windows)
 - =shell=
 - =term=
-- =ansi-term=
+- =ansi-term= (default on Linux/macOS)
 - =multi-term=
+- =vterm=
 
 #+BEGIN_SRC emacs-lisp
   (setq-default dotspacemacs-configuration-layers
@@ -80,7 +147,13 @@ your shell is positioned on the left or the right.
              shell-default-width 40)))
 #+END_SRC
 
-** Set shell for term and ansi-term
+** External terminal emulator
+This layer supports opening an external terminal emulator using [[https://github.com/davidshepherd7/terminal-here][terminal-here]].
+By default =terminal-here= finds an appropriate default shell for you.
+If this does not work please check the package documentation how to
+change it.
+
+** Set shell for term, ansi-term and vterm
 The default shell can be set by setting the variable =shell-default-term-shell=.
 Default value is =/bin/bash=.
 
@@ -213,19 +286,22 @@ Some advanced configuration is setup for =eshell= in this layer:
 
 * Key bindings
 
-| Key binding | Description                                                |
-|-------------+------------------------------------------------------------|
-| ~SPC '​~     | Open, close or go to the default shell                     |
-| ~SPC p '​~   | Open a shell in the project's root                         |
-| ~SPC a s e~ | Open, close or go to an =eshell=                           |
-| ~SPC a s i~ | Open, close or go to a =shell=                             |
-| ~SPC a s m~ | Open, close or go to a =multi-term=                        |
-| ~SPC a s t~ | Open, close or go to a =ansi-term=                         |
-| ~SPC a s T~ | Open, close or go to a =term=                              |
-| ~TAB~       | browse completion with =helm=                              |
-| ~SPC m H~   | browse history with =helm= (works in =eshell= and =shell=) |
-| ~C-j~       | next item in history                                       |
-| ~C-k~       | previous item in history                                   |
+| Key binding   | Description                                                |
+|---------------+------------------------------------------------------------|
+| ~SPC '​~       | Open, close or go to the default shell                     |
+| ~SPC "​~       | Open external terminal emulator in current directory       |
+| ~SPC p '​~     | Open a shell in the project's root                         |
+| ~SPC p "​~     | Open external terminal emulator in project root            |
+| ~SPC a t s e~ | Open, close or go to an =eshell=                           |
+| ~SPC a t s i~ | Open, close or go to a =shell=                             |
+| ~SPC a t s m~ | Open, close or go to a =multi-term=                        |
+| ~SPC a t s t~ | Open, close or go to a =ansi-term=                         |
+| ~SPC a t s T~ | Open, close or go to a =term=                              |
+| ~TAB~         | browse completion with =helm=                              |
+| ~SPC m H~     | browse history with =helm= (works in =eshell= and =shell=) |
+| ~SPC a t s v~ | Open, close or go to a =vterm=                             |
+| ~C-j~         | next item in history                                       |
+| ~C-k~         | previous item in history                                   |
 
 *Note:* You can open multiple shells using a numerical prefix argument,
 for instance pressing ~2 SPC '​~ will a second default shell, the

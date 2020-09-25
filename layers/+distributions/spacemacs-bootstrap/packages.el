@@ -1,6 +1,6 @@
 ;;; packages.el --- Mandatory Bootstrap Layer packages File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -27,7 +27,7 @@
         (evil-evilified-state :location local :step pre :protected t)
         (pcre2el :step pre)
         (holy-mode :location local :step pre)
-        (hybrid-mode :location local :step pre)
+        (hybrid-mode :location (recipe :fetcher local) :step pre)
         (spacemacs-theme :location built-in)
         ))
 
@@ -70,7 +70,7 @@
   ;; Use evil as a default jump handler
   (add-to-list 'spacemacs-default-jump-handlers 'evil-goto-definition)
 
-  (require 'cl)
+  (require 'cl-lib)
   ;; State cursors
   (cl-loop for (state color shape) in spacemacs-evil-cursors
            do (spacemacs/add-evil-cursor state color shape))
@@ -133,15 +133,20 @@
   (define-key evil-normal-state-map (kbd "gD") 'spacemacs/jump-to-definition-other-window)
 
   ;; scrolling transient state
-  (spacemacs|define-transient-state scroll
-    :title "Scrolling Transient State"
-    :doc "
+  (spacemacs|transient-state-format-hint scroll
+    spacemacs--scroll-ts-full-hint
+    (format "\n[_?_] toggle help
  Line/Column^^^^      Half Page^^^^        Full Page^^ Buffer^^^^    Other
  ───────────^^^^───── ─────────^^^^─────── ─────────^^ ──────^^^^─── ─────^^───
  [_k_]^^   up         [_u_/_K_] up         [_b_] up    [_<_/_g_] beg [_q_] quit
  [_j_]^^   down       [_d_/_J_] down       [_f_] down  [_>_/_G_] end
- [_h_/_l_] left/right [_H_/_L_] left/right"
+ [_h_/_l_] left/right [_H_/_L_] left/right"))
+  (spacemacs|define-transient-state scroll
+    :title "Scrolling Transient State"
+    :hint-is-doc t
+    :dynamic-hint (spacemacs//scroll-ts-hint)
     :bindings
+    ("?" spacemacs//scroll-ts-toggle-hint)
     ;; lines and columns
     ("j" evil-scroll-line-down)
     ("k" evil-scroll-line-up)
@@ -305,20 +310,25 @@
   (setq use-package-verbose init-file-debug
         ;; inject use-package hooks for easy customization of stock package
         ;; configuration
-        use-package-inject-hooks t))
+        use-package-inject-hooks t)
+  (add-to-list 'use-package-keywords :spacebind t))
 
 (defun spacemacs-bootstrap/init-which-key ()
   (require 'which-key)
 
-  (setq which-key-special-keys nil
-        which-key-use-C-h-for-paging t
-        which-key-prevent-C-h-from-cycling t
-        which-key-echo-keystrokes 0.02
-        which-key-max-description-length 32
+  (setq which-key-add-column-padding 1
         which-key-allow-multiple-replacements t
-        which-key-sort-order 'which-key-key-order-alpha
+        which-key-echo-keystrokes 0.02
         which-key-idle-delay dotspacemacs-which-key-delay
         which-key-idle-secondary-delay 0.01
+        which-key-max-description-length 32
+        which-key-max-display-columns nil
+        which-key-min-display-lines 6
+        which-key-prevent-C-h-from-cycling t
+        which-key-sort-order 'which-key-prefix-then-key-order
+        which-key-sort-uppercase-first nil
+        which-key-special-keys nil
+        which-key-use-C-h-for-paging t
         which-key-allow-evil-operators t)
 
   (spacemacs|add-toggle which-key
@@ -339,6 +349,7 @@
          ;; being higher in this list means the replacement is applied later
          '(
            ("spacemacs/\\(.+\\)" . "\\1")
+           ("spacemacs//\\(.+\\)" . "\\1")
            ("spacemacs-\\(.+\\)" . "\\1")
            ("spacemacs/toggle-\\(.+\\)" . "\\1")
            ("\\(.+\\)-transient-state/\\(.+\\)" . "\\2")
@@ -404,12 +415,12 @@
 
   ;; SPC b- buffers
   ;; rename the buffer-to-window-1 entry, to 1..9
-  (push '(("\\(.*\\)1" . "buffer-to-window-1") .
-          ("\\11..9" . "buffer to window 1..9"))
+  (push '(("\\(.*\\)1" . "Move buffer to window 1") .
+          ("\\11..9" . "Move buffer to window 1..9"))
         which-key-replacement-alist)
 
   ;; hide the "[2-9] -> buffer-to-window-[2-9]" entries
-  (push '((nil . "buffer-to-window-[2-9]") . t)
+  (push '((nil . "Move buffer to window [2-9]") . t)
         which-key-replacement-alist)
 
   ;; SPC k- lisp

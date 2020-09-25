@@ -549,7 +549,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; case, incf (plus, for Emacs 20: dolist, dotimes)
+(eval-when-compile (require 'cl-lib)) ;; case, incf (plus, for Emacs 20: dolist, dotimes)
 (require 'frame-fns) ;; frame-geom-value-cons, frame-geom-value-numeric, frames-on, get-frame-name,
                      ;; get-a-frame, read-frame
 (require 'strings nil t) ;; (no error if not found) read-buffer
@@ -619,7 +619,7 @@ Candidates include `jump-to-frame-config-register' and `show-buffer-menu'."
 
 ;; Use `cond', not `case', for Emacs 20 byte-compiler.
 (defcustom window-mgr-title-bar-pixel-height (cond ((eq window-system 'mac) 22)
-                                                   ;; For older versions of OS X, 40 might be better.
+                                                   ;; For older versions of macOS, 40 might be better.
 						   ((eq window-system 'ns)  50)
 						   (t  27))
   "*Height of frame title bar provided by the window manager, in pixels.
@@ -1215,7 +1215,7 @@ In Lisp code:
                                (frame-geom-value-numeric 'height new-height))
                (cons 'restore-height orig-height)))))
     (show-frame frame)
-    (incf fr-origin (if (eq direction 'horizontal) fr-pixel-width fr-pixel-height))))
+    (cl-incf fr-origin (if (eq direction 'horizontal) fr-pixel-width fr-pixel-height))))
 
 ;;;###autoload
 (unless (fboundp 'restore-frame-horizontally)
@@ -1281,7 +1281,7 @@ In Lisp code:
         (orig-height     (frame-parameter frame 'height))
         (horiz           (memq direction '(horizontal both)))
         (vert            (memq direction '(vertical both))))
-    (case direction
+    (cl-case direction
       (both        (unless (and restore-left  restore-width  restore-top  restore-height)
                      (maximize-frame 'both frame)))
       (vertical    (unless (and restore-top  restore-height) (maximize-frame-vertically frame)))
@@ -1420,7 +1420,7 @@ the pixel width and height of the rectangle."
         (fr-origin        (if (eq direction 'horizontal)
                               (or x-min-pix  (car (frcmds-effective-screen-pixel-bounds)))
                             (or y-min-pix  (cadr (frcmds-effective-screen-pixel-bounds))))))
-    (case direction                     ; Size of frame in pixels.
+    (cl-case direction                     ; Size of frame in pixels.
       (horizontal  (setq fr-pixel-width   (/ fr-pixel-width  (length visible-frames))))
       (vertical    (setq fr-pixel-height  (/ fr-pixel-height (length visible-frames))))
       (otherwise   (error "`frcmds-tile-frames': DIRECTION must be `horizontal' or `vertical'")))
@@ -1458,7 +1458,7 @@ the pixel width and height of the rectangle."
                           (if (eq direction 'horizontal) (or y-min-pix  0) fr-origin))
       (show-frame fr)
       ;; Move over the width or height of one frame, and add one border width.
-      (incf fr-origin (+ (or (cdr (assq 'border-width (frame-parameters fr)))  0)
+      (cl-incf fr-origin (+ (or (cdr (assq 'border-width (frame-parameters fr)))  0)
                          (if (eq direction 'horizontal) fr-pixel-width fr-pixel-height))))))
 
 (defun frcmds-extra-pixels-width (frame)
@@ -1470,7 +1470,7 @@ the pixel width and height of the rectangle."
   (- (frame-pixel-height frame) (* (frame-char-height frame) (frame-height frame))))
 
 (defun frcmds-smart-tool-bar-pixel-height (&optional frame)
-  "Pixel height of Mac smart tool bar."
+  "Pixel height of macOS smart tool bar."
   (if (and (boundp 'mac-tool-bar-display-mode)  (> (frame-parameter frame 'tool-bar-lines) 0))
       (if (eq mac-tool-bar-display-mode 'icons) 40 56)
     0))
@@ -1512,7 +1512,7 @@ the pixel width and height of the rectangle."
   "Returns a value of the same form as option `available-screen-pixel-bounds'.
 This represents the currently available screen area."
   (or available-screen-pixel-bounds     ; Use the option value, if available.
-      (if (fboundp 'mac-display-available-pixel-bounds) ; Mac-OS-specific.
+      (if (fboundp 'mac-display-available-pixel-bounds) ; macOS-specific.
           (mac-display-available-pixel-bounds)
         (list 0 0 (x-display-pixel-width) (x-display-pixel-height)))))
 

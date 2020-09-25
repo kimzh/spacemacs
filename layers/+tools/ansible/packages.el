@@ -1,6 +1,6 @@
 ;;; packages.el --- Ansible Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Brian Hicks <brian@brianthicks.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -63,12 +63,12 @@
   (use-package company-ansible
     :defer t
     :init
-    (progn
-     ;; append this hook at the end to execute it last so `company-backends'
-     ;; variable is buffer local
-     (add-hook 'yaml-mode-hook 'spacemacs/ansible-company-maybe-enable t)
-     (spacemacs|add-company-backends :backends company-ansible
-                                     :modes ansible))))
+    (unless yaml-enable-lsp
+      ;; append this hook at the end to execute it last so `company-backends'
+      ;; variable is buffer local
+      (add-hook 'yaml-mode-hook 'spacemacs/ansible-company-maybe-enable t)
+      (spacemacs|add-company-backends :backends company-ansible
+                                      :modes ansible))))
 
 (defun ansible/init-jinja2-mode ()
   (use-package jinja2-mode

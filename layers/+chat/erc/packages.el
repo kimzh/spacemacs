@@ -1,6 +1,6 @@
 ;;; packages.el --- erc Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -49,11 +49,11 @@
     :init
     (progn
       (spacemacs/set-leader-keys
-        "aie" 'erc
-        "aiE" 'erc-tls
-        "aii" 'erc-track-switch-buffer
-        "aiD" 'erc/default-servers)
-      (spacemacs/declare-prefix "ai"  "irc")
+        "acie" 'erc
+        "aciE" 'erc-tls
+        "acii" 'erc-track-switch-buffer
+        "aciD" 'erc/default-servers)
+      (spacemacs/declare-prefix "aci"  "irc")
       ;; utf-8 always and forever
       (setq erc-server-coding-system '(utf-8 . utf-8)))
     :config
@@ -101,6 +101,7 @@
         "j" 'erc-join-channel
         "n" 'erc-channel-names
         "l" 'erc-list-command
+        "c" 'spacemacs/erc-find-channel-log
         "p" 'erc-part-from-channel
         "q" 'erc-quit-server))))
 
@@ -213,11 +214,17 @@
       (spacemacs|define-transient-state erc-log
         :title "ERC Log Transient State"
         :doc "\n[_r_] reload the log file  [_>_/_<_] go to the next/prev mention"
-        :evil-leader-for-mode (erc-mode . ".")
+        :evil-leader-for-mode (erc-view-log-mode . ".")
         :bindings
         ("r" erc-view-log-reload-file)
         (">" erc-view-log-next-mention)
-        ("<" erc-view-log-previous-mention)))))
+        ("<" erc-view-log-previous-mention))
+
+      (defun spacemacs/erc-find-channel-log ()
+        "find current erc channel's log file in `erc-view-log-mode'"
+        (interactive)
+        (when (erc-logging-enabled)
+          (find-file-existing (erc-current-logfile)))))))
 
 (defun erc/init-erc-image ()
   (use-package erc-image
@@ -249,6 +256,7 @@
               (erc/default-servers)
             (call-interactively 'erc)))))))
 
-(defun erc/pre-init-window-purpose ()
-  (spacemacs|use-package-add-hook window-purpose
-    :pre-config (add-to-list 'purpose-user-mode-purposes '(erc-mode . chat))))
+(defun erc/post-init-window-purpose ()
+  (purpose-set-extension-configuration
+   :erc-layer
+   (purpose-conf :mode-purposes '((erc-mode . chat)))))

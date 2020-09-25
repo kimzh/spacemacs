@@ -1,6 +1,6 @@
 ;;; packages.el --- cscope Layer packages File for Spacemacs
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -37,7 +37,8 @@
                                                  (cscope//safe-project-root)))))
         (let ((default-directory directory))
           (shell-command
-           (format "pycscope -R -f '%s'"
+           (format "%s -R -f '%s'"
+                   pycscope-binary
                    (expand-file-name "cscope.out" directory))))))))
 
 (defun cscope/init-helm-cscope ()

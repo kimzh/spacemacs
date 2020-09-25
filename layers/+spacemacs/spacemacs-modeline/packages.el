@@ -1,6 +1,6 @@
 ;;; packages.el --- Spacemacs Mode-line Visual Layer packages File
 ;;
-;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2020 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -12,7 +12,7 @@
 (setq spacemacs-modeline-packages
       '(
         anzu
-        doom-modeline
+        (doom-modeline :toggle (eq (spacemacs/get-mode-line-theme-name) 'doom))
         fancy-battery
         ;; dependency of spaceline-all-the-icons which came from
         ;; the emacs wiki, we fetch it from Emacs Mirror for now.
@@ -32,10 +32,13 @@
     (spaceline-all-the-icons--setup-anzu)))
 
 (defun spacemacs-modeline/init-doom-modeline ()
-  (use-package doom-modeline
-    :defer t
-    :if (eq (spacemacs/get-mode-line-theme-name) 'doom)
-    :init (doom-modeline-init)))
+  ;; doom modeline depends on `display-graphic-p' so we delay its initialization
+  ;; as when dumping we don't know yet wether we are using a graphical emacs or
+  ;; not.
+  (spacemacs|unless-dumping-and-eval-after-loaded-dump doom-modeline
+    (use-package doom-modeline
+      :defer t
+      :init (doom-modeline-mode))))
 
 (defun spacemacs-modeline/init-fancy-battery ()
   (use-package fancy-battery
@@ -60,20 +63,11 @@
               '(spacemacs all-the-icons custom))
     :init
     (progn
-      (add-hook 'emacs-startup-hook
-                (lambda ()
-                  (spacemacs|add-transient-hook window-configuration-change-hook
-                    (lambda ()
-                      (setq spaceline-byte-compile t)
-                      ;; this must also be set in this hook because
-                      ;; (spacemacs/compute-mode-line-height) returns incorrect
-                      ;; results if it is called before the display system is
-                      ;; initialized. see issue for details:
-                      ;; https://github.com/syl20bnr/spacemacs/issues/10181
-                      (setq powerline-height
-                            (spacemacs/compute-mode-line-height))
-                      (spaceline-compile))
-                    lazy-load-spaceline)))
+      (spacemacs|require-when-dumping 'spaceline)
+      (spacemacs|when-dumping-strict
+        (spacemacs/spaceline-config-startup))
+      (spacemacs|unless-dumping
+        (add-hook 'emacs-startup-hook 'spacemacs/spaceline-config-startup-hook))
       (add-hook 'spacemacs-post-theme-change-hook
                 'spacemacs/customize-powerline-faces)
       (add-hook 'spacemacs-post-theme-change-hook 'powerline-reset)
@@ -147,11 +141,11 @@
                             (message "Update aborted."))))
                       map)))
       (spaceline-define-segment
-       new-version
-       (when spacemacs-new-version
-         (spacemacs-powerline-new-version
-          (spacemacs/get-new-version-lighter-face
-           spacemacs-version spacemacs-new-version))))
+          new-version
+        (when spacemacs-new-version
+          (spacemacs-powerline-new-version
+           (spacemacs/get-new-version-lighter-face
+            spacemacs-version spacemacs-new-version))))
       (let ((theme (intern (format "spaceline-%S-theme"
                                    (spacemacs/get-mode-line-theme-name)))))
         (apply theme spacemacs-spaceline-additional-segments))
